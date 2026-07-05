@@ -180,6 +180,13 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         timestamp: op.timestamp
       }));
 
+      // If CREATE BOARD, we must insert into board_access FIRST so RLS allows the operations
+      const boardCreateOps = pendingOps.filter((op: any) => op.entity === 'BOARDS' && op.type === 'CREATE');
+      for (const op of boardCreateOps) {
+        await supabaseRef.current.from('boards').upsert({ id: op.entityId });
+        await supabaseRef.current.from('board_access').upsert({ board_id: op.entityId, user_id: user?.id });
+      }
+
       // Send operations to Supabase
       const { error } = await supabaseRef.current
         .from('operations')
@@ -189,13 +196,6 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('[SYNC] Failed to insert operations to Supabase:', error);
         setSyncStatus('error');
         return;
-      }
-
-      // If CREATE BOARD, also insert into board_access
-      const boardCreateOps = pendingOps.filter((op: any) => op.entity === 'BOARDS' && op.type === 'CREATE');
-      for (const op of boardCreateOps) {
-        await supabaseRef.current.from('boards').upsert({ id: op.entityId });
-        await supabaseRef.current.from('board_access').upsert({ board_id: op.entityId, user_id: user?.id });
       }
 
       // Remove synced ops locally

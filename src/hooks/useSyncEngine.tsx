@@ -180,7 +180,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         type: op.type,
         entity: op.entity,
         entity_id: op.entityId,
-        payload: typeof op.payload === 'string' ? JSON.parse(op.payload) : op.payload,
+        payload: (typeof op.payload === 'string' && op.payload.trim()) ? JSON.parse(op.payload) : (op.payload || {}),
         timestamp: op.timestamp
       }));
 

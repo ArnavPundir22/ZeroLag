@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from '../store';
 import { useDatabase } from '../db/DatabaseProvider';
-import { X, Calendar, Tag, AlertCircle, MessageSquare, Send, Trash2 } from 'lucide-react';
+import { X, Calendar, Tag, AlertCircle, MessageSquare, Send, Trash2, Paperclip, Download } from 'lucide-react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { motion, AnimatePresence } from 'framer-motion';
 import { v4 as uuidv4 } from 'uuid';
@@ -114,6 +114,45 @@ export const TaskDetailsPanel: React.FC = () => {
         console.error('Failed to delete task:', err);
       }
     }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !task || !db) return;
+
+    // 50MB limit
+    if (file.size > 50 * 1024 * 1024) {
+      alert('File size exceeds 50MB limit. Please choose a smaller file to ensure offline sync reliability.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64Data = event.target?.result as string;
+      const newAttachment = {
+        id: uuidv4(),
+        name: file.name,
+        size: file.size,
+        mimeType: file.type,
+        data: base64Data
+      };
+
+      const currentAttachments = task.attachments || [];
+      const updatedAttachments = [...currentAttachments, newAttachment];
+      
+      await updateField('attachments', updatedAttachments);
+      
+      // Also log activity
+      await db.activities.insert({
+        id: uuidv4(),
+        taskId: task.id,
+        type: 'updated',
+        description: `Attached file: ${file.name}`,
+        timestamp: new Date().toISOString()
+      });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = ''; // reset input
   };
 
   return (
@@ -310,6 +349,76 @@ export const TaskDetailsPanel: React.FC = () => {
                                 No description provided. Click 'Edit' or double-click to add one.
                               </span>
                             )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="h-px bg-border w-full" />
+
+                      {/* Attachments */}
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-sm font-medium text-text-primary flex items-center gap-2">
+                            <Paperclip className="w-4 h-4" /> Attachments
+                          </h3>
+                          <label className="cursor-pointer bg-surface-hover hover:bg-border/50 text-text-primary px-3 py-1.5 rounded-md text-xs font-medium transition-colors border border-border/50">
+                            Upload File
+                            <input 
+                              type="file" 
+                              className="hidden" 
+                              onChange={handleFileUpload}
+                              accept="image/*,.pdf,.doc,.docx,.txt"
+                            />
+                          </label>
+                        </div>
+
+                        {(task.attachments && task.attachments.length > 0) ? (
+                          <div className="grid grid-cols-2 gap-3">
+                            {task.attachments.map((attachment: any) => (
+                              <div key={attachment.id} className="relative group rounded-lg border border-border/50 overflow-hidden bg-surface-hover/30 aspect-square flex flex-col items-center justify-center">
+                                {attachment.mimeType.startsWith('image/') ? (
+                                  <img 
+                                    src={attachment.data} 
+                                    alt={attachment.name} 
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="p-4 flex flex-col items-center justify-center text-center">
+                                    <Paperclip className="w-8 h-8 text-text-secondary mb-2 opacity-50" />
+                                    <span className="text-xs text-text-primary font-medium truncate w-full px-2" title={attachment.name}>{attachment.name}</span>
+                                    <span className="text-[10px] text-text-secondary mt-1">{(attachment.size / 1024).toFixed(1)} KB</span>
+                                  </div>
+                                )}
+                                
+                                <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 backdrop-blur-[2px]">
+                                  <a 
+                                    href={attachment.data} 
+                                    download={attachment.name}
+                                    className="bg-surface text-text-primary p-2 rounded-full hover:bg-accent hover:text-white transition-colors shadow-lg"
+                                    title="Download"
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </a>
+                                  <button
+                                    onClick={() => {
+                                      if (window.confirm('Remove this attachment?')) {
+                                        updateField('attachments', task.attachments.filter((a: any) => a.id !== attachment.id));
+                                      }
+                                    }}
+                                    className="bg-surface text-red-400 p-2 rounded-full hover:bg-red-500 hover:text-white transition-colors shadow-lg"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center p-6 border border-dashed border-border/60 rounded-xl bg-surface-hover/20">
+                            <Paperclip className="w-6 h-6 text-text-secondary opacity-30 mb-2" />
+                            <p className="text-sm text-text-secondary">No attachments yet.</p>
+                            <p className="text-xs text-text-secondary opacity-50">Upload a file up to 50MB.</p>
                           </div>
                         )}
                       </div>

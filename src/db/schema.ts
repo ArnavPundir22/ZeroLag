@@ -44,7 +44,21 @@ export const taskSchema: RxJsonSchema<any> = {
     position: { type: 'number' },
     updatedAt: { type: 'string' },
     version: { type: 'number' },
-    deviceId: { type: 'string' }
+    deviceId: { type: 'string' },
+    attachments: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          size: { type: 'number' },
+          mimeType: { type: 'string' },
+          data: { type: 'string' }
+        },
+        required: ['id', 'name', 'size', 'mimeType', 'data']
+      }
+    }
   },
   required: ['id', 'columnId', 'title', 'position', 'updatedAt', 'version', 'deviceId'],
   indexes: ['columnId', 'position', ['columnId', 'position']]

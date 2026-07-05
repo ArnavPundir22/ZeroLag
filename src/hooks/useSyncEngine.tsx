@@ -27,7 +27,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isOffline = useAppStore(state => state.isOffline);
   const setSyncStatus = useAppStore(state => state.setSyncStatus);
   const syncTimeoutRef = useRef<any>(null);
-  
+
   // Hold the authenticated supabase instance
   const supabaseRef = useRef<SupabaseClient | null>(null);
   // Track active channels so we can unsubscribe if needed
@@ -36,7 +36,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const handleRemoteOperation = async (op: any) => {
     if (!db) return;
     console.log('[SYNC] Received remote operation:', op);
-    
+
     const collectionName = op.entity.toLowerCase();
     const collection = (db as any)[collectionName];
 
@@ -56,7 +56,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const payloadData = typeof op.payload === 'string' ? JSON.parse(op.payload) : op.payload;
         const entityId = op.entity_id || op.entityId || payloadData.id;
         const doc = await collection.findOne({ selector: { id: entityId } }).exec();
-        
+
         const { _rev, _deleted, _attachments, _meta, ...cleanData } = payloadData;
 
         if (doc) {
@@ -98,11 +98,11 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Fetch missed operations
         const lastSync = localStorage.getItem('last_sync_timestamp') || '0';
-        
+
         // Get all local boards to filter
         const boards = await db.boards.find().exec();
         const boardIds = boards.map((b: any) => b.id);
-        
+
         if (boardIds.length > 0) {
           const { data: operations, error } = await supabase
             .from('operations')
@@ -139,7 +139,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           })
           .subscribe();
-          
+
       } catch (err) {
         console.error('[SYNC] Initialization error:', err);
       }
@@ -159,11 +159,11 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const syncOperations = async () => {
     if (isOffline || !db || !supabaseRef.current || isSyncingRef.current) return;
-    
+
     try {
       isSyncingRef.current = true;
       setSyncStatus('syncing');
-      
+
       const pendingOps = await db.operations.find({
         selector: { status: 'PENDING' }
       }).exec();
@@ -180,34 +180,55 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         type: op.type,
         entity: op.entity,
         entity_id: op.entityId,
-        payload: typeof op.payload === 'string' ? JSON.parse(op.payload) : op.payload,
+        payload: op.payload,
         timestamp: op.timestamp
       }));
 
       // If CREATE BOARD, we must insert into board_access FIRST so RLS allows the operations
       const boardCreateOps = pendingOps.filter((op: any) => op.entity === 'BOARDS' && op.type === 'CREATE');
       for (const op of boardCreateOps) {
-        // Fallback to minimal insert for boards to satisfy FK before board_access
-        await supabaseRef.current.from('boards').upsert({ id: op.entityId });
-        await supabaseRef.current.from('board_access').upsert({ board_id: op.entityId, user_id: user?.id });
+        const { error: boardErr } = await supabaseRef.current.from('boards').upsert({ id: op.entityId });
+        if (boardErr) console.error('[SYNC] Failed to upsert board:', boardErr);
+
+        const { error: accessErr } = await supabaseRef.current.from('board_access').upsert({ board_id: op.entityId, user_id: user?.id });
+        if (accessErr) console.error('[SYNC] Failed to upsert board_access:', accessErr);
       }
 
-      // Send operations to Supabase using upsert to handle concurrent duplicate key conditions
-      const { error } = await supabaseRef.current
+      // Check which operations already exist to avoid unique constraint violations
+      const opIds = payload.map((p: any) => p.id);
+      const { data: existingOps, error: checkError } = await supabaseRef.current
         .from('operations')
-        .upsert(payload, { onConflict: 'id' });
+        .select('id')
+        .in('id', opIds);
 
-      if (error) {
-        console.error('[SYNC] Failed to insert operations to Supabase:', error);
+      if (checkError) {
+        console.error('[SYNC] Failed to check existing operations:', checkError);
         setSyncStatus('error');
         isSyncingRef.current = false;
         return;
       }
 
-      // Remove synced ops locally
+      const existingIds = new Set(existingOps?.map(op => op.id) || []);
+      const newOps = payload.filter((p: any) => !existingIds.has(p.id));
+
+      if (newOps.length > 0) {
+        // Send operations to Supabase
+        const { error: insertError } = await supabaseRef.current
+          .from('operations')
+          .insert(newOps);
+
+        if (insertError) {
+          console.error('[SYNC] Failed to insert operations to Supabase:', insertError);
+          setSyncStatus('error');
+          isSyncingRef.current = false;
+          return;
+        }
+      }
+
+      // Remove synced ops locally (both the new ones we just inserted and the ones that already existed)
       const opsToDeleteIds = pendingOps.map((op: any) => op.id);
       await db.operations.bulkRemove(opsToDeleteIds);
-      
+
       setSyncStatus('idle');
 
     } catch (err) {
@@ -235,7 +256,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const joinRemoteBoard = async (boardId: string): Promise<boolean> => {
     if (!supabaseRef.current || !db) return false;
-    
+
     try {
       // Add ourselves to board_access if not already there
       // We assume if they have the ID, they have the invite link
@@ -256,7 +277,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         return true;
       }
-      
+
       return false;
     } catch (err) {
       console.error('[SYNC] Failed to join remote board:', err);

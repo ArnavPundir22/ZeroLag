@@ -1,0 +1,12 @@
+{
+  "auth_phone": {
+    "used_for_sign_in": false,
+    "used_for_sign_up": false,
+    "required_for_sign_up": false,
+    "verify_at_sign_up": false,
+    "second_factor_strategies": [],
+    "sign_in_strategies": [],
+    "verification_strategies": [],
+    "used_for_second_factor": false
+  }
+}

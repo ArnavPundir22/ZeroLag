@@ -10,6 +10,7 @@ import { Dashboard } from './components/Dashboard';
 import { SyncProvider } from './hooks/useSyncEngine';
 import { SignIn, useUser } from '@clerk/react';
 import { useAppStore } from './store';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 const BoardRouteWrapper = () => {
   const { boardId } = useParams();
@@ -30,8 +31,11 @@ const BoardView = () => {
   const syncStatus = useAppStore(state => state.syncStatus);
   const filterPriorities = useAppStore(state => state.filterPriorities);
   const setFilterPriorities = useAppStore(state => state.setFilterPriorities);
+  const filterLabels = useAppStore(state => state.filterLabels);
+  const setFilterLabels = useAppStore(state => state.setFilterLabels);
   const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [availableLabels, setAvailableLabels] = useState<string[]>([]);
   
   const db = useDatabase();
   const [boardTitle, setBoardTitle] = useState('Board');
@@ -45,11 +49,34 @@ const BoardView = () => {
     return () => sub.unsubscribe();
   }, [db, currentBoardId]);
 
+  // Fetch available labels
+  useEffect(() => {
+    if (!db) return;
+    const sub = db.tasks.find().$.subscribe((tsks: any[]) => {
+      const labels = new Set<string>();
+      tsks.forEach((t: any) => {
+        if (t.labels && Array.isArray(t.labels)) {
+          t.labels.forEach((l: string) => labels.add(l));
+        }
+      });
+      setAvailableLabels(Array.from(labels).sort());
+    });
+    return () => sub.unsubscribe();
+  }, [db]);
+
   const togglePriorityFilter = (priority: string) => {
     if (filterPriorities.includes(priority)) {
       setFilterPriorities(filterPriorities.filter(p => p !== priority));
     } else {
       setFilterPriorities([...filterPriorities, priority]);
+    }
+  };
+
+  const toggleLabelFilter = (label: string) => {
+    if (filterLabels.includes(label)) {
+      setFilterLabels(filterLabels.filter(l => l !== label));
+    } else {
+      setFilterLabels([...filterLabels, label]);
     }
   };
 
@@ -101,11 +128,11 @@ const BoardView = () => {
           <div className="relative">
             <button 
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className={`flex items-center gap-2 text-sm px-2 sm:px-3 py-1.5 rounded-md border transition-colors ${filterPriorities.length > 0 ? 'bg-accent/10 border-accent text-accent' : 'border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover'}`}
+              className={`flex items-center gap-2 text-sm px-2 sm:px-3 py-1.5 rounded-md border transition-colors ${(filterPriorities.length > 0 || filterLabels.length > 0) ? 'bg-accent/10 border-accent text-accent' : 'border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover'}`}
             >
               <span className="hidden sm:inline">Filter</span>
               <span className="sm:hidden text-xs font-medium">Filter</span>
-              {filterPriorities.length > 0 && `(${filterPriorities.length})`}
+              {(filterPriorities.length > 0 || filterLabels.length > 0) && `(${filterPriorities.length + filterLabels.length})`}
             </button>
             
             {isFilterOpen && (
@@ -123,6 +150,22 @@ const BoardView = () => {
                       <span className="capitalize">{p}</span>
                     </button>
                   ))}
+
+                  {availableLabels.length > 0 && (
+                    <>
+                      <div className="px-3 py-1 mt-2 border-t border-border/50 pt-2 text-xs font-medium text-text-secondary uppercase tracking-wider">Labels</div>
+                      {availableLabels.map(l => (
+                        <button 
+                          key={l}
+                          onClick={() => toggleLabelFilter(l)}
+                          className="w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-surface-hover transition-colors"
+                        >
+                          <div className={`w-3 h-3 rounded border flex-shrink-0 ${filterLabels.includes(l) ? 'bg-accent border-accent' : 'border-border'}`} />
+                          <span className="truncate">{l}</span>
+                        </button>
+                      ))}
+                    </>
+                  )}
                 </div>
               </>
             )}
@@ -191,6 +234,26 @@ const BoardView = () => {
 
 const AppContent = () => {
   const setIsOffline = useAppStore(state => state.setIsOffline);
+  const setIsSearchOpen = useAppStore(state => state.setIsSearchOpen);
+  const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
+  const theme = useAppStore(state => state.theme);
+  const setTheme = useAppStore(state => state.setTheme);
+
+  // Global Keyboard Shortcuts
+  useHotkeys('mod+k', (e) => {
+    e.preventDefault();
+    setIsSearchOpen(true);
+  });
+  
+  useHotkeys('mod+b', (e) => {
+    e.preventDefault();
+    setIsSidebarOpen(true); // Toggle logic could be used if we had access to current state directly, but we don't in this hook without passing it as deps
+  });
+
+  useHotkeys('mod+d', (e) => {
+    e.preventDefault();
+    setTheme(theme === 'light' ? 'dark' : 'light');
+  }, [theme, setTheme]);
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -204,8 +267,6 @@ const AppContent = () => {
       window.removeEventListener('offline', handleOffline);
     };
   }, [setIsOffline]);
-
-  const theme = useAppStore(state => state.theme);
 
   useEffect(() => {
     if (theme === 'light') {

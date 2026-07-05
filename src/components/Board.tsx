@@ -11,6 +11,7 @@ export const Board: React.FC = () => {
   const db = useDatabase();
   const currentBoardId = useAppStore(state => state.currentBoardId);
   const filterPriorities = useAppStore(state => state.filterPriorities);
+  const filterLabels = useAppStore(state => state.filterLabels);
   
   const [columns, setColumns] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -170,6 +171,11 @@ export const Board: React.FC = () => {
 
   const filteredTasks = tasks.filter(t => {
     if (filterPriorities.length > 0 && !filterPriorities.includes(t.priority)) return false;
+    if (filterLabels.length > 0) {
+      if (!t.labels || !Array.isArray(t.labels)) return false;
+      const hasMatchingLabel = t.labels.some((l: string) => filterLabels.includes(l));
+      if (!hasMatchingLabel) return false;
+    }
     return true;
   });
 

@@ -188,10 +188,16 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const boardCreateOps = pendingOps.filter((op: any) => op.entity === 'BOARDS' && op.type === 'CREATE');
       for (const op of boardCreateOps) {
         const { error: boardErr } = await supabaseRef.current.from('boards').upsert({ id: op.entityId });
-        if (boardErr) console.error('[SYNC] Failed to upsert board:', boardErr);
+        if (boardErr) {
+          console.error('[SYNC] Failed to upsert board:', boardErr);
+          window.alert(`[SYNC ERROR: BOARDS UPSERT]\n\nDetails: ${boardErr.message || JSON.stringify(boardErr)}\n\nPlease check your Supabase schema or RLS for 'boards'.`);
+        }
 
         const { error: accessErr } = await supabaseRef.current.from('board_access').upsert({ board_id: op.entityId, user_id: user?.id });
-        if (accessErr) console.error('[SYNC] Failed to upsert board_access:', accessErr);
+        if (accessErr) {
+          console.error('[SYNC] Failed to upsert board_access:', accessErr);
+          window.alert(`[SYNC ERROR: BOARD_ACCESS UPSERT]\n\nDetails: ${accessErr.message || JSON.stringify(accessErr)}\n\nPlease check your Supabase schema or RLS for 'board_access'.`);
+        }
       }
 
       // Check which operations already exist to avoid unique constraint violations

@@ -11,7 +11,8 @@ export const boardSchema: RxJsonSchema<any> = {
     createdAt: { type: 'string' },
     updatedAt: { type: 'string' }
   },
-  required: ['id', 'title', 'createdAt', 'updatedAt']
+  required: ['id', 'title', 'createdAt', 'updatedAt'],
+  indexes: ['updatedAt']
 };
 
 export const columnSchema: RxJsonSchema<any> = {
@@ -24,7 +25,8 @@ export const columnSchema: RxJsonSchema<any> = {
     title: { type: 'string' },
     position: { type: 'number' }
   },
-  required: ['id', 'boardId', 'title', 'position']
+  required: ['id', 'boardId', 'title', 'position'],
+  indexes: ['boardId', 'position', ['boardId', 'position']]
 };
 
 export const taskSchema: RxJsonSchema<any> = {
@@ -44,7 +46,8 @@ export const taskSchema: RxJsonSchema<any> = {
     version: { type: 'number' },
     deviceId: { type: 'string' }
   },
-  required: ['id', 'columnId', 'title', 'position', 'updatedAt', 'version', 'deviceId']
+  required: ['id', 'columnId', 'title', 'position', 'updatedAt', 'version', 'deviceId'],
+  indexes: ['columnId', 'position', ['columnId', 'position']]
 };
 
 export const operationSchema: RxJsonSchema<any> = {

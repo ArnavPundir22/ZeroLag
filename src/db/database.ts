@@ -1,10 +1,12 @@
 import { createRxDatabase, addRxPlugin } from 'rxdb';
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
 import { RxDBLeaderElectionPlugin } from 'rxdb/plugins/leader-election';
+import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
 import { boardSchema, columnSchema, taskSchema, operationSchema, commentSchema, activitySchema } from './schema';
 import { v4 as uuidv4 } from 'uuid';
 
 addRxPlugin(RxDBLeaderElectionPlugin);
+addRxPlugin(RxDBUpdatePlugin);
 
 let dbPromise: Promise<any> | null = null;
 export const resetDatabase = () => { dbPromise = null; };
@@ -14,7 +16,7 @@ export const getDatabase = async (userId: string) => {
   
   dbPromise = (async () => {
     const db = await createRxDatabase({
-      name: `zerolag_${userId}`,
+      name: `zerolag_${userId}_v2`,
       storage: getRxStorageDexie(),
       multiInstance: true,
       eventReduce: true

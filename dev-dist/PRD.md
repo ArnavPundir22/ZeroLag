@@ -852,8 +852,11 @@ UX
 ### V3
 
 * CRDT synchronization
-* AI sprint planning
-* AI summaries
+* AI Task Assistant (Auto-generate checklists & estimates)
+* AI summaries & Sprint planning
+* Built-In Time Tracking & Pomodoro Timer
+* Insights & Analytics Dashboard (Velocity & Burndown charts)
+* Rich Subtasks with Progress Bars
 * Voice commands
 * Calendar integration
 * Desktop app

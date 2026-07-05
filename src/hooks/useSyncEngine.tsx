@@ -155,10 +155,13 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [isOffline, db, user?.id, session]);
 
+  const isSyncingRef = useRef(false);
+
   const syncOperations = async () => {
-    if (isOffline || !db || !supabaseRef.current) return;
+    if (isOffline || !db || !supabaseRef.current || isSyncingRef.current) return;
     
     try {
+      isSyncingRef.current = true;
       setSyncStatus('syncing');
       
       const pendingOps = await db.operations.find({
@@ -167,6 +170,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (pendingOps.length === 0) {
         setSyncStatus('idle');
+        isSyncingRef.current = false;
         return;
       }
 
@@ -176,42 +180,27 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         type: op.type,
         entity: op.entity,
         entity_id: op.entityId,
-        payload: op.payload,
+        payload: typeof op.payload === 'string' ? JSON.parse(op.payload) : op.payload,
         timestamp: op.timestamp
       }));
 
       // If CREATE BOARD, we must insert into board_access FIRST so RLS allows the operations
       const boardCreateOps = pendingOps.filter((op: any) => op.entity === 'BOARDS' && op.type === 'CREATE');
       for (const op of boardCreateOps) {
-        const boardData = typeof op.payload === 'string' ? JSON.parse(op.payload) : op.payload;
-        const { error: boardErr } = await supabaseRef.current.from('boards').upsert({ 
-          id: op.entityId,
-          workspace_id: boardData.workspaceId || 'default',
-          title: boardData.title,
-          created_at: boardData.createdAt,
-          updated_at: boardData.updatedAt
-        });
-        if (boardErr) {
-          console.error('[SYNC] Failed to upsert board:', boardErr);
-        }
-
-        const { error: accessErr } = await supabaseRef.current.from('board_access').upsert({ 
-          board_id: op.entityId, 
-          user_id: user?.id 
-        });
-        if (accessErr) {
-          console.error('[SYNC] Failed to upsert board_access:', accessErr);
-        }
+        // Fallback to minimal insert for boards to satisfy FK before board_access
+        await supabaseRef.current.from('boards').upsert({ id: op.entityId });
+        await supabaseRef.current.from('board_access').upsert({ board_id: op.entityId, user_id: user?.id });
       }
 
-      // Send operations to Supabase
+      // Send operations to Supabase using upsert to handle concurrent duplicate key conditions
       const { error } = await supabaseRef.current
         .from('operations')
-        .insert(payload);
+        .upsert(payload, { onConflict: 'id' });
 
       if (error) {
         console.error('[SYNC] Failed to insert operations to Supabase:', error);
         setSyncStatus('error');
+        isSyncingRef.current = false;
         return;
       }
 
@@ -224,6 +213,8 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err) {
       console.error('[SYNC] Sync error:', err);
       setSyncStatus('error');
+    } finally {
+      isSyncingRef.current = false;
     }
   };
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { DndContext, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, DragOverlay, closestCorners, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { Column } from './Column';
 import { Task } from './Task';
@@ -45,6 +45,12 @@ export const Board: React.FC = () => {
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 5,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
       },
     })
   );
@@ -187,8 +193,8 @@ export const Board: React.FC = () => {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex-1 flex overflow-hidden">
-        <div className="flex-1 flex gap-6 p-8 overflow-x-auto items-start">
+      <div className="flex-1 w-full overflow-hidden">
+        <div className="h-full w-full flex gap-4 sm:gap-6 p-4 sm:p-8 overflow-x-auto items-start snap-x snap-mandatory">
           <SortableContext items={columns.map(c => c.id)} strategy={horizontalListSortingStrategy}>
             {columns.map(col => (
               <Column

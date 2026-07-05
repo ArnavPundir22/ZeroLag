@@ -243,6 +243,16 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const opsToDeleteIds = pendingOps.map((op: any) => op.id);
       await db.operations.bulkRemove(opsToDeleteIds);
 
+      // If DELETE BOARD, remove access so new devices don't fetch its history
+      const boardDeleteOps = pendingOps.filter((op: any) => op.entity === 'BOARDS' && op.type === 'DELETE');
+      for (const op of boardDeleteOps) {
+        const { error: accessErr } = await supabaseRef.current.from('board_access')
+          .delete()
+          .eq('board_id', op.entityId)
+          .eq('user_id', user?.id);
+        if (accessErr) console.error('[SYNC] Failed to remove board_access:', accessErr);
+      }
+
       setSyncStatus('idle');
 
     } catch (err: any) {

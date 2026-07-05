@@ -1,4 +1,5 @@
 import { ClerkProvider } from '@clerk/react';
+import { dark } from '@clerk/themes';
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
@@ -17,6 +18,7 @@ createRoot(document.getElementById('root')!).render(
       afterSignOutUrl="/"
       signInFallbackRedirectUrl="/"
       signUpFallbackRedirectUrl="/"
+      appearance={{ baseTheme: dark }}
     >
       <App />
     </ClerkProvider>

@@ -35,6 +35,7 @@ const BoardView = () => {
   
   const db = useDatabase();
   const [boardTitle, setBoardTitle] = useState('Board');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!db || !currentBoardId) return;
@@ -52,10 +53,32 @@ const BoardView = () => {
     }
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (!currentBoardId) return;
-    navigator.clipboard.writeText(currentBoardId);
-    alert('Project Code copied to clipboard: ' + currentBoardId + '\n\nShare this code with others so they can join your project.');
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(currentBoardId);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = currentBoardId;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+        } catch (err) {
+          console.error('Fallback copy failed', err);
+        }
+        document.body.removeChild(textArea);
+      }
+      setToastMessage('Project code copied to clipboard!');
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (err) {
+      console.error('Failed to copy', err);
+    }
   };
 
   return (
@@ -155,6 +178,13 @@ const BoardView = () => {
       </header>
 
       <Board />
+
+      {toastMessage && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-surface border border-border shadow-xl rounded-lg px-4 py-3 z-50 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
+          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+          <span className="text-sm font-medium text-text-primary">{toastMessage}</span>
+        </div>
+      )}
     </main>
   );
 };

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface AppState {
   currentBoardId: string | null;
@@ -15,21 +16,33 @@ interface AppState {
   setFilterPriorities: (priorities: string[]) => void;
   filterLabels: string[];
   setFilterLabels: (labels: string[]) => void;
+  theme: 'dark' | 'light';
+  setTheme: (theme: 'dark' | 'light') => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
-  currentBoardId: null,
-  setCurrentBoardId: (id) => set({ currentBoardId: id }),
-  isOffline: !navigator.onLine,
-  setIsOffline: (offline) => set({ isOffline: offline }),
-  syncStatus: 'idle',
-  setSyncStatus: (status) => set({ syncStatus: status }),
-  selectedTaskId: null,
-  setSelectedTaskId: (id) => set({ selectedTaskId: id }),
-  isSearchOpen: false,
-  setIsSearchOpen: (isOpen) => set({ isSearchOpen: isOpen }),
-  filterPriorities: [],
-  setFilterPriorities: (priorities) => set({ filterPriorities: priorities }),
-  filterLabels: [],
-  setFilterLabels: (labels) => set({ filterLabels: labels }),
-}));
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      currentBoardId: null,
+      setCurrentBoardId: (id) => set({ currentBoardId: id }),
+      isOffline: !navigator.onLine,
+      setIsOffline: (offline) => set({ isOffline: offline }),
+      syncStatus: 'idle',
+      setSyncStatus: (status) => set({ syncStatus: status }),
+      selectedTaskId: null,
+      setSelectedTaskId: (id) => set({ selectedTaskId: id }),
+      isSearchOpen: false,
+      setIsSearchOpen: (isOpen) => set({ isSearchOpen: isOpen }),
+      filterPriorities: [],
+      setFilterPriorities: (priorities) => set({ filterPriorities: priorities }),
+      filterLabels: [],
+      setFilterLabels: (labels) => set({ filterLabels: labels }),
+      theme: 'dark',
+      setTheme: (theme) => set({ theme }),
+    }),
+    {
+      name: 'zerolag-store',
+      partialize: (state) => ({ theme: state.theme }), // Only persist the theme
+    }
+  )
+);

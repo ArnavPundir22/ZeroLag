@@ -19,7 +19,7 @@ export default defineConfig({
         name: 'ZeroLag',
         short_name: 'ZeroLag',
         theme_color: '#0e0e10',
-        icons: [{ src: '/vite.svg', sizes: '192x192', type: 'image/svg+xml' }]
+        icons: [{ src: '/icon.png', sizes: '1024x1024', type: 'image/png' }, { src: '/icon.png', sizes: '192x192', type: 'image/png' }, { src: '/icon.png', sizes: '512x512', type: 'image/png' }]
       }
     })
   ],

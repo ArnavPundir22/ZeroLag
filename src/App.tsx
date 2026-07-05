@@ -164,6 +164,17 @@ const AppContent = () => {
       window.removeEventListener('offline', handleOffline);
     };
   }, [setIsOffline]);
+
+  const theme = useAppStore(state => state.theme);
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('light');
+    } else {
+      document.documentElement.classList.remove('light');
+    }
+  }, [theme]);
+
   return (
     <SyncProvider>
       <div className="flex h-screen bg-background text-text-primary overflow-hidden font-sans">

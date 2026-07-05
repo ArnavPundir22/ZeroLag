@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Layout, Search, Settings, Plus, Trash2, Home, Link2 } from 'lucide-react';
+import { Activity, Layout, Search, Settings, Plus, Trash2, Home, Link2, Moon, Sun, Download } from 'lucide-react';
 import { useAppStore } from '../store';
 import { useDatabase } from '../db/DatabaseProvider';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,6 +13,8 @@ export const Sidebar: React.FC = () => {
   const currentBoardId = useAppStore(state => state.currentBoardId);
   const setCurrentBoardId = useAppStore(state => state.setCurrentBoardId);
   const setIsSearchOpen = useAppStore(state => state.setIsSearchOpen);
+  const theme = useAppStore(state => state.theme);
+  const setTheme = useAppStore(state => state.setTheme);
   const db = useDatabase();
   const [boards, setBoards] = useState<any[]>([]);
   const navigate = useNavigate();
@@ -21,7 +23,7 @@ export const Sidebar: React.FC = () => {
   
   const [isJoining, setIsJoining] = useState(false);
   const [modalState, setModalState] = useState<{
-    type: 'create' | 'join' | 'delete' | 'alert' | null;
+    type: 'create' | 'join' | 'delete' | 'alert' | 'preferences' | null;
     title?: string;
     message?: string;
     targetId?: string;
@@ -35,6 +37,27 @@ export const Sidebar: React.FC = () => {
     });
     return () => sub.unsubscribe();
   }, [db]);
+
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallPwa = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
+      if (choiceResult.outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    }
+  };
 
   const closeModal = () => {
     setModalState({ type: null });
@@ -214,7 +237,7 @@ export const Sidebar: React.FC = () => {
                 <Search className="w-4 h-4" />
                 Search
               </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary rounded-lg font-medium text-sm transition-colors">
+              <button onClick={() => setModalState({ type: 'preferences' })} className="w-full flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary rounded-lg font-medium text-sm transition-colors">
                 <Settings className="w-4 h-4" />
                 Preferences
               </button>
@@ -280,6 +303,56 @@ export const Sidebar: React.FC = () => {
           <p className="text-text-secondary">{modalState.message}</p>
           <div className="flex justify-end pt-2">
             <button type="button" onClick={closeModal} className="px-4 py-2 text-sm font-medium bg-surface-hover text-text-primary rounded-lg hover:bg-surface-hover/80">OK</button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={modalState.type === 'preferences'} onClose={closeModal} title="Preferences">
+        <div className="space-y-6">
+          
+          {/* Theme Settings */}
+          <div>
+            <h3 className="text-sm font-medium text-text-primary mb-3">Appearance</h3>
+            <div className="bg-background rounded-lg border border-border p-1 flex">
+              <button 
+                onClick={() => setTheme('light')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-colors ${theme === 'light' ? 'bg-surface shadow text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+              >
+                <Sun className="w-4 h-4" />
+                Light
+              </button>
+              <button 
+                onClick={() => setTheme('dark')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-colors ${theme === 'dark' ? 'bg-surface shadow text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+              >
+                <Moon className="w-4 h-4" />
+                Dark
+              </button>
+            </div>
+          </div>
+
+          {/* App Installation */}
+          {deferredPrompt && (
+            <div>
+              <h3 className="text-sm font-medium text-text-primary mb-3">App Installation</h3>
+              <div className="bg-background border border-border rounded-lg p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-text-primary">Install ZeroLag</p>
+                  <p className="text-xs text-text-secondary mt-0.5">Add to your device for true offline access</p>
+                </div>
+                <button 
+                  onClick={handleInstallPwa}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent/90 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Install App
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end pt-4 border-t border-border/50">
+            <button type="button" onClick={closeModal} className="px-4 py-2 text-sm font-medium bg-surface-hover text-text-primary rounded-lg hover:bg-surface-hover/80">Done</button>
           </div>
         </div>
       </Modal>

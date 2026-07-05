@@ -187,11 +187,12 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // If CREATE BOARD, we must insert into board_access FIRST so RLS allows the operations
       const boardCreateOps = pendingOps.filter((op: any) => op.entity === 'BOARDS' && op.type === 'CREATE');
       for (const op of boardCreateOps) {
-        const { error: boardErr } = await supabaseRef.current.from('boards').upsert({ id: op.entityId });
-        if (boardErr) console.error('[SYNC] Failed to upsert board:', boardErr);
+        // Use insert instead of upsert to avoid RLS SELECT check failures for new boards
+        const { error: boardErr } = await supabaseRef.current.from('boards').insert({ id: op.entityId });
+        if (boardErr && boardErr.code !== '23505') console.error('[SYNC] Failed to insert board:', boardErr);
 
-        const { error: accessErr } = await supabaseRef.current.from('board_access').upsert({ board_id: op.entityId, user_id: user?.id });
-        if (accessErr) console.error('[SYNC] Failed to upsert board_access:', accessErr);
+        const { error: accessErr } = await supabaseRef.current.from('board_access').insert({ board_id: op.entityId, user_id: user?.id });
+        if (accessErr && accessErr.code !== '23505') console.error('[SYNC] Failed to insert board_access:', accessErr);
       }
 
       // Check which operations already exist to avoid unique constraint violations

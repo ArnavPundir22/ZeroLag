@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, createContext, useContext } from 'react';
+import React, { useEffect, useRef, createContext, useContext } from 'react';
 import { useDatabase } from '../db/DatabaseProvider';
 import { useAppStore } from '../store';
 import { useUser, useSession } from '@clerk/react';

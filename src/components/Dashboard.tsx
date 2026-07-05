@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDatabase } from '../db/DatabaseProvider';
-import { useAppStore } from '../store';
+
 import { Plus, LayoutTemplate, Clock, ArrowRight, Share2, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';

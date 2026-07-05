@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Layout, Search, Settings, Plus, Trash2, Home, LogOut, Link2 } from 'lucide-react';
+import { Activity, Layout, Search, Settings, Plus, Trash2, Home, Link2 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { useDatabase } from '../db/DatabaseProvider';
 import { v4 as uuidv4 } from 'uuid';
@@ -131,7 +131,7 @@ export const Sidebar: React.FC = () => {
         {user && (
           <div className="p-4 border-b border-border/50">
             <div className="flex items-center gap-3">
-              <UserButton afterSignOutUrl="/" appearance={{ elements: { userButtonAvatarBox: "w-10 h-10" } }} />
+              <UserButton appearance={{ elements: { userButtonAvatarBox: "w-10 h-10" } }} />
               <div className="flex flex-col min-w-0">
                 <span className="text-sm font-medium text-text-primary truncate">
                   {user.fullName || user.firstName || 'User'}

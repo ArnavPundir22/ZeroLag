@@ -4,7 +4,7 @@ import { Board } from './components/Board';
 import { TaskDetailsPanel } from './components/TaskDetailsPanel';
 import { SearchOverlay } from './components/SearchOverlay';
 import { DatabaseProvider, useDatabase } from './db/DatabaseProvider';
-import { Bell, RefreshCw, CheckCircle2, AlertTriangle, LogIn, Share2 } from 'lucide-react';
+import { Bell, RefreshCw, CheckCircle2, AlertTriangle, Share2 } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 import { SyncProvider } from './hooks/useSyncEngine';
@@ -37,7 +37,7 @@ const BoardView = () => {
 
   useEffect(() => {
     if (!db || !currentBoardId) return;
-    const sub = db.boards.findOne({ selector: { id: currentBoardId } }).$.subscribe(doc => {
+    const sub = db.boards.findOne({ selector: { id: currentBoardId } }).$.subscribe((doc: any) => {
       if (doc) setBoardTitle(doc.title);
     });
     return () => sub.unsubscribe();

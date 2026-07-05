@@ -4,7 +4,7 @@ import { Board } from './components/Board';
 import { TaskDetailsPanel } from './components/TaskDetailsPanel';
 import { SearchOverlay } from './components/SearchOverlay';
 import { DatabaseProvider, useDatabase } from './db/DatabaseProvider';
-import { Bell, RefreshCw, CheckCircle2, AlertTriangle, Share2, Activity } from 'lucide-react';
+import { Bell, RefreshCw, CheckCircle2, AlertTriangle, Share2, Activity, Menu } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 import { SyncProvider } from './hooks/useSyncEngine';
@@ -30,6 +30,7 @@ const BoardView = () => {
   const syncStatus = useAppStore(state => state.syncStatus);
   const filterPriorities = useAppStore(state => state.filterPriorities);
   const setFilterPriorities = useAppStore(state => state.setFilterPriorities);
+  const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   
   const db = useDatabase();
@@ -59,20 +60,29 @@ const BoardView = () => {
 
   return (
     <main className="flex-1 overflow-hidden flex flex-col relative">
-      <header className="h-14 border-b border-border flex items-center justify-between px-8 shrink-0 bg-background/80 backdrop-blur-md z-10">
-        <div className="flex items-center gap-4">
-          <h2 className="font-medium text-text-primary">
+      <header className="h-14 border-b border-border flex items-center justify-between px-4 sm:px-8 shrink-0 bg-background/80 backdrop-blur-md z-10">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <button 
+            onClick={() => setIsSidebarOpen(true)}
+            className="md:hidden p-1.5 -ml-1.5 text-text-secondary hover:text-text-primary rounded-md hover:bg-surface-hover"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          
+          <h2 className="font-medium text-text-primary truncate max-w-[120px] sm:max-w-[200px] md:max-w-xs">
             {boardTitle}
           </h2>
           
-          <div className="h-4 w-px bg-border mx-2" />
+          <div className="hidden sm:block h-4 w-px bg-border mx-2" />
           
           <div className="relative">
             <button 
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-md border transition-colors ${filterPriorities.length > 0 ? 'bg-accent/10 border-accent text-accent' : 'border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover'}`}
+              className={`flex items-center gap-2 text-sm px-2 sm:px-3 py-1.5 rounded-md border transition-colors ${filterPriorities.length > 0 ? 'bg-accent/10 border-accent text-accent' : 'border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover'}`}
             >
-              Filter {filterPriorities.length > 0 && `(${filterPriorities.length})`}
+              <span className="hidden sm:inline">Filter</span>
+              <span className="sm:hidden text-xs font-medium">Filter</span>
+              {filterPriorities.length > 0 && `(${filterPriorities.length})`}
             </button>
             
             {isFilterOpen && (

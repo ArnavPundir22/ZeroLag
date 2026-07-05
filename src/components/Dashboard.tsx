@@ -1,21 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useDatabase } from '../db/DatabaseProvider';
 
-import { Plus, LayoutTemplate, Clock, ArrowRight, Share2, Loader2 } from 'lucide-react';
+import { Plus, LayoutTemplate, Clock, ArrowRight, Share2, Loader2, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useUser } from '@clerk/react';
 import { useSyncContext } from '../hooks/useSyncEngine';
+import { useAppStore } from '../store';
+import { Modal } from './Modal';
 
 export const Dashboard: React.FC = () => {
   const db = useDatabase();
   const navigate = useNavigate();
   const { user } = useUser();
   const { joinRemoteBoard } = useSyncContext();
+  const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
+  
   const [boards, setBoards] = useState<any[]>([]);
   const [joinCode, setJoinCode] = useState('');
   const [isJoining, setIsJoining] = useState(false);
   const [joinError, setJoinError] = useState('');
+  
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newProjectName, setNewProjectName] = useState('');
 
   useEffect(() => {
     if (!db) return;
@@ -25,13 +32,15 @@ export const Dashboard: React.FC = () => {
     return () => sub.unsubscribe();
   }, [db]);
 
-  const handleCreateBoard = async () => {
-    if (!db || !user) return;
+  const handleCreateBoard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!db || !user || !newProjectName.trim()) return;
+    
     const boardId = `board-${uuidv4().slice(0, 8)}`;
     await db.boards.insert({
       id: boardId,
       workspaceId: user.id,
-      title: 'New Project',
+      title: newProjectName.trim(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     });
@@ -43,6 +52,8 @@ export const Dashboard: React.FC = () => {
       { id: uuidv4(), boardId, title: 'Done', position: 2 }
     ];
     await db.columns.bulkInsert(cols);
+    setIsCreateModalOpen(false);
+    setNewProjectName('');
     navigate(`/b/${boardId}`);
   };
 
@@ -72,10 +83,21 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="flex-1 overflow-y-auto bg-background custom-scrollbar">
-      <div className="max-w-6xl mx-auto px-8 py-12">
-        <header className="mb-12">
-          <h1 className="text-3xl font-bold text-text-primary tracking-tight">Welcome back, {user?.firstName}!</h1>
-          <p className="text-text-secondary mt-2">Here's an overview of your workspaces and projects.</p>
+      {/* Mobile Top Nav (only visible on mobile, since sidebar is hidden) */}
+      <div className="md:hidden flex items-center px-4 h-14 border-b border-border bg-surface/30 sticky top-0 z-10 backdrop-blur-md">
+        <button 
+          onClick={() => setIsSidebarOpen(true)}
+          className="p-2 -ml-2 text-text-secondary hover:text-text-primary rounded-md hover:bg-surface-hover"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+        <span className="font-semibold text-text-primary ml-2">Dashboard</span>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-12">
+        <header className="mb-8 sm:mb-12">
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">Welcome back, {user?.firstName}!</h1>
+          <p className="text-sm sm:text-base text-text-secondary mt-2">Here's an overview of your workspaces and projects.</p>
         </header>
 
         <section className="mb-12">
@@ -88,7 +110,7 @@ export const Dashboard: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <button
-              onClick={handleCreateBoard}
+              onClick={() => setIsCreateModalOpen(true)}
               className="group h-48 rounded-xl border-2 border-dashed border-border hover:border-accent hover:bg-accent/5 flex flex-col items-center justify-center gap-3 transition-all"
             >
               <div className="w-12 h-12 rounded-full bg-surface flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -148,6 +170,26 @@ export const Dashboard: React.FC = () => {
           {joinError && <p className="text-red-400 text-xs mt-2">{joinError}</p>}
         </section>
       </div>
+
+      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Create New Project">
+        <form onSubmit={handleCreateBoard} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">Project Name</label>
+            <input
+              type="text"
+              autoFocus
+              value={newProjectName}
+              onChange={(e) => setNewProjectName(e.target.value)}
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent"
+              placeholder="e.g. Marketing Campaign"
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary">Cancel</button>
+            <button type="submit" disabled={!newProjectName.trim()} className="px-4 py-2 text-sm font-medium bg-accent text-white rounded-lg hover:bg-accent/90 disabled:opacity-50">Create</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

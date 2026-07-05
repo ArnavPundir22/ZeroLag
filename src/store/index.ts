@@ -12,6 +12,8 @@ interface AppState {
   setSelectedTaskId: (id: string | null) => void;
   isSearchOpen: boolean;
   setIsSearchOpen: (isOpen: boolean) => void;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (isOpen: boolean) => void;
   filterPriorities: string[];
   setFilterPriorities: (priorities: string[]) => void;
   filterLabels: string[];
@@ -33,6 +35,8 @@ export const useAppStore = create<AppState>()(
       setSelectedTaskId: (id) => set({ selectedTaskId: id }),
       isSearchOpen: false,
       setIsSearchOpen: (isOpen) => set({ isSearchOpen: isOpen }),
+      isSidebarOpen: false,
+      setIsSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
       filterPriorities: [],
       setFilterPriorities: (priorities) => set({ filterPriorities: priorities }),
       filterLabels: [],

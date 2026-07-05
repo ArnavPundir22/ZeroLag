@@ -13,6 +13,8 @@ export const Sidebar: React.FC = () => {
   const currentBoardId = useAppStore(state => state.currentBoardId);
   const setCurrentBoardId = useAppStore(state => state.setCurrentBoardId);
   const setIsSearchOpen = useAppStore(state => state.setIsSearchOpen);
+  const isSidebarOpen = useAppStore(state => state.isSidebarOpen);
+  const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
   const theme = useAppStore(state => state.theme);
   const setTheme = useAppStore(state => state.setTheme);
   const db = useDatabase();
@@ -29,6 +31,11 @@ export const Sidebar: React.FC = () => {
     targetId?: string;
   }>({ type: null });
   const [inputValue, setInputValue] = useState('');
+
+  // Close sidebar on navigation on mobile
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location.pathname, setIsSidebarOpen]);
 
   useEffect(() => {
     if (!db) return;
@@ -143,7 +150,15 @@ export const Sidebar: React.FC = () => {
 
   return (
     <>
-      <aside className="w-64 border-r border-border bg-surface/30 flex flex-col hidden md:flex shrink-0">
+      {/* Mobile Backdrop */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-surface flex flex-col transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0 md:bg-surface/30 shrink-0 ${isSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`}>
         <div className="h-14 flex items-center px-6 border-b border-border">
           <Link to="/" className="flex items-center gap-2 text-accent">
             <Activity className="w-5 h-5" />

@@ -203,6 +203,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (checkError) {
         console.error('[SYNC] Failed to check existing operations:', checkError);
+        window.alert(`[SYNC ERROR: CHECK]\n\nDetails: ${checkError.message || JSON.stringify(checkError)}\n\nPlease check Supabase RLS SELECT policies.`);
         setSyncStatus('error');
         isSyncingRef.current = false;
         return;
@@ -219,8 +220,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (insertError) {
           console.error('[SYNC] Failed to insert operations to Supabase:', insertError);
-          // TEMPORARY DEBUG ALERT: Show the exact error on the screen so the user can debug their Supabase RLS!
-          window.alert(`[SYNC ERROR]\n\nIf you see this, your Supabase Database is blocking the insert!\n\nDetails: ${insertError.message || insertError.details || JSON.stringify(insertError)}\n\nPlease check your Supabase RLS policies for 'boards', 'board_access', and 'operations'.`);
+          window.alert(`[SYNC ERROR: INSERT]\n\nIf you see this, your Supabase Database is blocking the insert!\n\nDetails: ${insertError.message || insertError.details || JSON.stringify(insertError)}\n\nPlease check your Supabase RLS policies for 'boards', 'board_access', and 'operations'.`);
           setSyncStatus('error');
           isSyncingRef.current = false;
           return;
@@ -233,8 +233,9 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setSyncStatus('idle');
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('[SYNC] Sync error:', err);
+      window.alert(`[SYNC ERROR: EXCEPTION]\n\nAn unexpected error occurred in the sync logic:\n\n${err?.message || JSON.stringify(err)}`);
       setSyncStatus('error');
     } finally {
       isSyncingRef.current = false;

@@ -111,7 +111,7 @@ export const Dashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="group h-48 rounded-xl border-2 border-dashed border-border hover:border-accent hover:bg-accent/5 flex flex-col items-center justify-center gap-3 transition-all"
+              className="group h-48 rounded-2xl border-2 border-dashed border-border/60 hover:border-accent hover:bg-accent/10 backdrop-blur-sm flex flex-col items-center justify-center gap-3 transition-all"
             >
               <div className="w-12 h-12 rounded-full bg-surface flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Plus className="w-6 h-6 text-text-secondary group-hover:text-accent" />
@@ -123,7 +123,7 @@ export const Dashboard: React.FC = () => {
               <div 
                 key={board.id}
                 onClick={() => navigate(`/b/${board.id}`)}
-                className="group h-48 bg-surface border border-border rounded-xl p-6 flex flex-col hover:border-accent hover:shadow-lg hover:shadow-accent/5 transition-all cursor-pointer relative overflow-hidden"
+                className="group h-48 bg-surface border border-border/80 backdrop-blur-xl rounded-2xl p-6 flex flex-col hover:border-accent hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-accent/20 transition-all duration-300 cursor-pointer relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0">
                   <ArrowRight className="w-5 h-5 text-accent" />
@@ -146,7 +146,7 @@ export const Dashboard: React.FC = () => {
           </div>
         </section>
 
-        <section className="mb-12 bg-surface border border-border rounded-xl p-6 max-w-md">
+        <section className="mb-12 bg-surface/80 backdrop-blur-xl border border-border/80 rounded-2xl p-6 max-w-md shadow-lg">
           <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2 mb-4">
             <Share2 className="w-5 h-5 text-accent" />
             Join a Project

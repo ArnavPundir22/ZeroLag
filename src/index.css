@@ -17,12 +17,12 @@
 
 @layer base {
   :root {
-    --bg-color: #020617;
-    --surface-color: #0f172a;
-    --surface-hover-color: #1e293b;
-    --border-color: #1e293b;
-    --accent-color: #3b82f6;
-    --accent-hover-color: #2563eb;
+    --bg-color: #0f172a; /* Deep Canvas */
+    --surface-color: rgba(255, 255, 255, 0.03); /* Frosted Glass */
+    --surface-hover-color: rgba(255, 255, 255, 0.08); /* Frosted Glass Hover */
+    --border-color: rgba(255, 255, 255, 0.1);
+    --accent-color: #6366f1; /* Electric Indigo */
+    --accent-hover-color: #4f46e5;
     --text-primary-color: #f8fafc;
     --text-secondary-color: #94a3b8;
     color-scheme: dark;
@@ -30,11 +30,11 @@
   
   :root.light {
     --bg-color: #f8fafc;
-    --surface-color: #ffffff;
-    --surface-hover-color: #f1f5f9;
-    --border-color: #e2e8f0;
-    --accent-color: #2563eb;
-    --accent-hover-color: #1d4ed8;
+    --surface-color: rgba(0, 0, 0, 0.02);
+    --surface-hover-color: rgba(0, 0, 0, 0.06);
+    --border-color: rgba(0, 0, 0, 0.1);
+    --accent-color: #6366f1;
+    --accent-hover-color: #4f46e5;
     --text-primary-color: #0f172a;
     --text-secondary-color: #64748b;
     color-scheme: light;
@@ -50,5 +50,37 @@
     padding: 0;
     height: 100vh;
     overflow: hidden;
+    position: relative;
+    z-index: 0;
+  }
+
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.35;
+  }
+
+  body::before {
+    top: -20%;
+    left: -10%;
+    width: 60vw;
+    height: 60vh;
+    background: #6366f1; /* Indigo */
+  }
+
+  body::after {
+    bottom: -20%;
+    right: -10%;
+    width: 60vw;
+    height: 60vh;
+    background: #a855f7; /* Violet */
+  }
+
+  :root.light body::before, :root.light body::after {
+    opacity: 0.15;
   }
 }

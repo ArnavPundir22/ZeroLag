@@ -278,7 +278,7 @@ const AppContent = () => {
 
   return (
     <SyncProvider>
-      <div className="flex h-screen bg-background text-text-primary overflow-hidden font-sans">
+      <div className="flex h-screen bg-transparent text-text-primary overflow-hidden font-sans">
         <Sidebar />
         
         <main className="flex-1 flex flex-col relative z-0">

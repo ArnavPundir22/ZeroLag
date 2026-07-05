@@ -35,7 +35,7 @@ export const Task: React.FC<TaskProps> = ({ task }) => {
       <div
         ref={setNodeRef}
         style={style}
-        className="opacity-50 border-2 border-accent bg-surface-hover rounded-lg p-4 mb-3"
+        className="opacity-50 border-2 border-accent bg-surface-hover backdrop-blur-xl shadow-indigo-500/30 shadow-2xl scale-[1.02] rounded-xl p-4 mb-3 transition-all duration-300"
       >
         <div className="h-10"></div>
       </div>
@@ -46,7 +46,7 @@ export const Task: React.FC<TaskProps> = ({ task }) => {
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-surface hover:bg-surface-hover border border-border rounded-lg p-4 mb-3 shadow-sm transition-colors group relative cursor-pointer"
+      className="bg-surface hover:bg-surface-hover border border-border backdrop-blur-md rounded-xl p-4 mb-3 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 group relative cursor-pointer"
       onClick={() => setSelectedTaskId(task.id)}
     >
       <div className="flex items-start gap-3">

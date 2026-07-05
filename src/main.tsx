@@ -18,7 +18,7 @@ createRoot(document.getElementById('root')!).render(
       afterSignOutUrl="/"
       signInFallbackRedirectUrl="/"
       signUpFallbackRedirectUrl="/"
-      appearance={{ baseTheme: dark }}
+      appearance={{ theme: dark }}
     >
       <App />
     </ClerkProvider>

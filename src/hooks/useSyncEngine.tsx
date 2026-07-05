@@ -99,15 +99,28 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Fetch missed operations
         const lastSync = localStorage.getItem('last_sync_timestamp') || '0';
 
-        // Get all local boards to filter
-        const boards = await db.boards.find().exec();
-        const boardIds = boards.map((b: any) => b.id);
+        // Get all boards the user has access to from Supabase
+        const { data: accessData, error: accessError } = await supabase
+          .from('board_access')
+          .select('board_id')
+          .eq('user_id', user.id);
 
-        if (boardIds.length > 0) {
+        let remoteBoardIds: string[] = [];
+        if (!accessError && accessData) {
+           remoteBoardIds = accessData.map(a => a.board_id);
+        }
+
+        // Get all local boards
+        const boards = await db.boards.find().exec();
+        const localBoardIds = boards.map((b: any) => b.id);
+        
+        const allBoardIds = Array.from(new Set([...remoteBoardIds, ...localBoardIds]));
+
+        if (allBoardIds.length > 0) {
           const { data: operations, error } = await supabase
             .from('operations')
             .select('*')
-            .in('board_id', boardIds)
+            .in('board_id', allBoardIds)
             .gt('timestamp', lastSync)
             .order('timestamp', { ascending: true });
 

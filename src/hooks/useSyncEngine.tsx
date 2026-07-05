@@ -180,7 +180,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         type: op.type,
         entity: op.entity,
         entity_id: op.entityId,
-        payload: op.payload,
+        payload: typeof op.payload === 'string' ? JSON.parse(op.payload) : op.payload,
         timestamp: op.timestamp
       }));
 
@@ -219,6 +219,8 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (insertError) {
           console.error('[SYNC] Failed to insert operations to Supabase:', insertError);
+          // TEMPORARY DEBUG ALERT: Show the exact error on the screen so the user can debug their Supabase RLS!
+          window.alert(`[SYNC ERROR]\n\nIf you see this, your Supabase Database is blocking the insert!\n\nDetails: ${insertError.message || insertError.details || JSON.stringify(insertError)}\n\nPlease check your Supabase RLS policies for 'boards', 'board_access', and 'operations'.`);
           setSyncStatus('error');
           isSyncingRef.current = false;
           return;

@@ -79,16 +79,11 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const initSupabase = async () => {
       try {
-        const token = await session.getToken({ template: 'supabase' });
-        if (!token) {
-          console.warn('[SYNC] Could not get Supabase JWT from Clerk. Ensure you created the JWT template.');
-        }
-
         const supabase = createClient(supabaseUrl, supabaseKey, {
-          global: {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+          accessToken: async () => {
+            const t = await session.getToken({ template: 'supabase' });
+            if (!t) console.warn('[SYNC] Could not get Supabase JWT from Clerk.');
+            return t || '';
           },
         });
 

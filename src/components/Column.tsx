@@ -81,7 +81,7 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
     <div 
       ref={setNodeRef}
       style={style}
-      className={`flex flex-col flex-1 min-w-[85vw] sm:min-w-[320px] max-w-[90vw] sm:max-w-[380px] bg-surface/40 backdrop-blur-3xl rounded-2xl p-4 h-full border border-border shrink-0 shadow-lg snap-center ${isDragging ? 'opacity-50' : ''}`}
+      className={`flex flex-col flex-1 min-w-full md:min-w-[280px] w-full bg-surface/40 backdrop-blur-3xl rounded-2xl p-3 sm:p-4 h-full border border-border shadow-lg ${isDragging ? 'opacity-50' : ''}`}
     >
       <div className="flex items-center justify-between mb-4 px-1">
         <div 
@@ -112,9 +112,9 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
         </div>
         <button
           onClick={() => setIsAdding(true)}
-          className="text-text-secondary hover:text-text-primary hover:bg-surface-hover p-1.5 rounded-md transition-colors"
+          className="text-text-secondary hover:text-text-primary hover:bg-surface-hover p-2 rounded-lg transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
         </button>
       </div>
 

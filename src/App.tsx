@@ -110,8 +110,8 @@ const BoardView = () => {
 
   return (
     <main className="flex-1 overflow-hidden flex flex-col relative">
-      <header className="h-14 border-b border-border flex items-center justify-between px-4 sm:px-8 shrink-0 bg-background/80 backdrop-blur-md z-10">
-        <div className="flex items-center gap-3 sm:gap-4">
+      <header className="h-14 border-b border-border flex items-center justify-between px-3 sm:px-8 shrink-0 bg-background/80 backdrop-blur-md z-10">
+        <div className="flex items-center gap-2 sm:gap-4">
           <button 
             onClick={() => setIsSidebarOpen(true)}
             className="md:hidden p-1.5 -ml-1.5 text-text-secondary hover:text-text-primary rounded-md hover:bg-surface-hover"
@@ -128,11 +128,15 @@ const BoardView = () => {
           <div className="relative">
             <button 
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className={`flex items-center gap-2 text-sm px-2 sm:px-3 py-1.5 rounded-md border transition-colors ${(filterPriorities.length > 0 || filterLabels.length > 0) ? 'bg-accent/10 border-accent text-accent' : 'border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover'}`}
+              className={`flex items-center gap-1.5 sm:gap-2 text-sm px-2.5 sm:px-3 py-1.5 rounded-lg border transition-colors min-h-[36px] ${(filterPriorities.length > 0 || filterLabels.length > 0) ? 'bg-accent/10 border-accent text-accent' : 'border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover'}`}
             >
               <span className="hidden sm:inline">Filter</span>
-              <span className="sm:hidden text-xs font-medium">Filter</span>
-              {(filterPriorities.length > 0 || filterLabels.length > 0) && `(${filterPriorities.length + filterLabels.length})`}
+              <span className="sm:hidden text-xs font-medium tracking-wide">Filters</span>
+              {(filterPriorities.length > 0 || filterLabels.length > 0) && (
+                <span className="bg-accent text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                  {filterPriorities.length + filterLabels.length}
+                </span>
+              )}
             </button>
             
             {isFilterOpen && (
@@ -172,8 +176,8 @@ const BoardView = () => {
           </div>
         </div>
         
-        <div className="flex items-center gap-4 text-sm">
-          <div className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-colors ${
+        <div className="flex items-center gap-2 sm:gap-4 text-sm">
+          <div className={`flex items-center gap-2 px-2.5 sm:px-3 py-1.5 min-h-[36px] rounded-full border transition-colors ${
             isOffline 
               ? 'border-orange-500/30 text-orange-400 bg-orange-500/10' 
               : syncStatus === 'syncing'
@@ -187,34 +191,34 @@ const BoardView = () => {
                 <span className="relative flex h-2 w-2">
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
                 </span>
-                Offline Mode
+                <span className="hidden sm:inline">Offline Mode</span>
               </>
             ) : syncStatus === 'syncing' ? (
               <>
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                Syncing
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span className="hidden sm:inline">Syncing</span>
               </>
             ) : syncStatus === 'error' ? (
               <>
-                <AlertTriangle className="w-3.5 h-3.5" />
-                Sync Error
+                <AlertTriangle className="w-4 h-4" />
+                <span className="hidden sm:inline">Sync Error</span>
               </>
             ) : (
               <>
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Synced
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Synced</span>
               </>
             )}
           </div>
           <button 
             onClick={handleShare}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-accent/30 text-accent hover:bg-accent/10 transition-colors"
+            className="flex items-center justify-center min-w-[36px] min-h-[36px] gap-2 px-2 sm:px-3 rounded-lg border border-accent/30 text-accent hover:bg-accent/10 transition-colors"
             title="Share Project"
           >
             <Share2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Share</span>
+            <span className="hidden sm:inline font-medium">Share</span>
           </button>
-          <button className="text-text-secondary hover:text-text-primary transition-colors">
+          <button className="flex items-center justify-center min-w-[36px] min-h-[36px] text-text-secondary hover:text-text-primary transition-colors rounded-lg hover:bg-surface-hover">
             <Bell className="w-5 h-5" />
           </button>
         </div>

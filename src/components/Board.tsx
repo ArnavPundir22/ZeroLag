@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { DndContext, DragOverlay, closestCorners, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, DragOverlay, closestCorners, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { Column } from './Column';
 import { Task } from './Task';
@@ -42,15 +42,14 @@ export const Board: React.FC = () => {
   }, [currentBoardId, db]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
         distance: 5,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 250,
-        tolerance: 5,
+        distance: 5,
       },
     })
   );
@@ -193,8 +192,8 @@ export const Board: React.FC = () => {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex-1 w-full overflow-hidden">
-        <div className="h-full w-full flex gap-4 sm:gap-6 p-4 sm:p-8 overflow-x-auto items-start snap-x snap-mandatory">
+      <div className="flex-1 w-full h-full overflow-hidden">
+        <div className="h-full w-full flex flex-col md:flex-row gap-4 sm:gap-6 px-4 sm:px-8 py-4 sm:py-8 overflow-y-auto md:overflow-x-auto md:overflow-y-hidden custom-scrollbar items-start">
           <SortableContext items={columns.map(c => c.id)} strategy={horizontalListSortingStrategy}>
             {columns.map(col => (
               <Column

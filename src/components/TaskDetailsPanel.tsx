@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from '../store';
 import { useDatabase } from '../db/DatabaseProvider';
-import { X, Calendar, Tag, AlertCircle, MessageSquare, Send, Trash2, Paperclip, Download } from 'lucide-react';
+import { X, Calendar, Tag, AlertCircle, MessageSquare, Send, Trash2, Paperclip, Download, UploadCloud, File } from 'lucide-react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { motion, AnimatePresence } from 'framer-motion';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,16 +15,23 @@ export const TaskDetailsPanel: React.FC = () => {
   
   const [task, setTask] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
-  const [activities, setActivities] = useState<any[]>([]);
+
   const [newComment, setNewComment] = useState('');
   const [isPreview, setIsPreview] = useState(true);
   const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'activity'>('details');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (!selectedTaskId || !db) {
       setTask(null);
       setComments([]);
-      setActivities([]);
+
       return;
     }
 
@@ -36,18 +43,13 @@ export const TaskDetailsPanel: React.FC = () => {
       setComments(docs.map((d: any) => d.toJSON()));
     });
 
-    const aSub = db.activities.find({ selector: { taskId: selectedTaskId }, sort: [{ timestamp: 'desc' }] }).$.subscribe((docs: any[]) => {
-      setActivities(docs.map((d: any) => d.toJSON()));
-    });
 
     return () => {
       sub.unsubscribe();
       cSub.unsubscribe();
-      aSub.unsubscribe();
     };
   }, [selectedTaskId, db]);
 
-  // Keyboard shortcut to close panel
   useHotkeys('esc', () => setSelectedTaskId(null), { enableOnFormTags: true });
 
   const handleAddComment = async (e: React.FormEvent) => {
@@ -116,13 +118,12 @@ export const TaskDetailsPanel: React.FC = () => {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !task || !db) return;
 
-    // 50MB limit
     if (file.size > 50 * 1024 * 1024) {
-      alert('File size exceeds 50MB limit. Please choose a smaller file to ensure offline sync reliability.');
+      alert('File is too large. Maximum size is 50MB.');
       return;
     }
 
@@ -134,60 +135,108 @@ export const TaskDetailsPanel: React.FC = () => {
         name: file.name,
         size: file.size,
         mimeType: file.type,
-        data: base64Data
+        data: base64Data,
       };
 
-      const currentAttachments = task.attachments || [];
-      const updatedAttachments = [...currentAttachments, newAttachment];
-      
-      await updateField('attachments', updatedAttachments);
-      
-      // Also log activity
-      await db.activities.insert({
-        id: uuidv4(),
-        taskId: task.id,
-        type: 'updated',
-        description: `Attached file: ${file.name}`,
-        timestamp: new Date().toISOString()
-      });
+      try {
+        const doc = await db.tasks.findOne({ selector: { id: task.id } }).exec();
+        if (doc) {
+          const currentAttachments = doc.attachments || [];
+          await doc.patch({
+            attachments: [...currentAttachments, newAttachment],
+            updatedAt: new Date().toISOString()
+          });
+
+          await db.activities.insert({
+            id: uuidv4(),
+            taskId: task.id,
+            type: 'uploaded',
+            description: `Attached file ${file.name}`,
+            timestamp: new Date().toISOString()
+          });
+        }
+      } catch (err) {
+        console.error('Failed to upload file:', err);
+      }
     };
     reader.readAsDataURL(file);
-    e.target.value = ''; // reset input
+  };
+  
+  const handleRemoveAttachment = async (attachmentId: string) => {
+    if (!task || !db) return;
+    try {
+      const doc = await db.tasks.findOne({ selector: { id: task.id } }).exec();
+      if (doc) {
+        const currentAttachments = doc.attachments || [];
+        const fileRemoved = currentAttachments.find((a: any) => a.id === attachmentId);
+        await doc.patch({
+          attachments: currentAttachments.filter((a: any) => a.id !== attachmentId),
+          updatedAt: new Date().toISOString()
+        });
+
+        if (fileRemoved) {
+          await db.activities.insert({
+            id: uuidv4(),
+            taskId: task.id,
+            type: 'deleted',
+            description: `Removed file ${fileRemoved.name}`,
+            timestamp: new Date().toISOString()
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to remove attachment:', err);
+    }
+  };
+
+
+
+  const getPriorityColors = (p: string) => {
+    if (p === 'urgent') return 'text-red-400 border-red-500/50 shadow-[0_0_12px_rgba(248,113,113,0.3)] bg-red-500/10';
+    if (p === 'high') return 'text-orange-400 border-orange-500/50 shadow-[0_0_12px_rgba(251,146,60,0.3)] bg-orange-500/10';
+    if (p === 'normal') return 'text-blue-400 border-blue-500/50 shadow-[0_0_12px_rgba(96,165,250,0.3)] bg-blue-500/10';
+    if (p === 'low') return 'text-emerald-400 border-emerald-500/50 shadow-[0_0_12px_rgba(52,211,153,0.3)] bg-emerald-500/10';
+    return 'text-text-secondary border-border bg-surface-hover';
   };
 
   return (
     <AnimatePresence>
       {selectedTaskId && (
         <>
-          {/* Backdrop for mobile mostly, but good for focus */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-background/50 backdrop-blur-sm z-40 md:hidden"
+            className="fixed inset-0 bg-background/80 backdrop-blur-md z-40"
             onClick={() => setSelectedTaskId(null)}
           />
 
           <motion.div
-            initial={{ x: '100%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: '100%', opacity: 0 }}
+            initial={{ y: '100%', opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: '100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed md:relative right-0 top-0 h-full w-full md:w-[400px] bg-surface border-l border-border z-50 flex flex-col shadow-2xl overflow-hidden"
+            className="fixed bottom-0 md:top-4 md:bottom-4 md:right-4 h-[92vh] md:h-auto w-full md:w-[480px] bg-surface/80 backdrop-blur-2xl border border-white/10 z-50 flex flex-col shadow-2xl rounded-t-3xl md:rounded-3xl overflow-hidden"
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <span className="text-text-secondary text-sm font-medium">Task Details</span>
+            {isMobile && (
+              <div className="w-full flex justify-center py-3 shrink-0">
+                <div className="w-12 h-1.5 bg-border rounded-full" />
+              </div>
+            )}
+            
+            <div className={`flex items-center justify-between px-6 pb-4 pt-4 border-b border-border/50`}>
+              <span className="text-text-secondary text-sm font-bold uppercase tracking-widest">Task Inspector</span>
               <div className="flex items-center gap-1">
                 <button 
                   onClick={handleDeleteTask}
-                  className="text-text-secondary hover:text-red-400 p-1.5 rounded-md hover:bg-red-500/10 transition-colors"
+                  className="text-text-secondary hover:text-red-400 p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl hover:bg-red-500/10 transition-colors"
                   title="Delete Task"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={() => setSelectedTaskId(null)}
-                  className="text-text-secondary hover:text-text-primary p-1.5 rounded-md hover:bg-surface-hover transition-colors"
+                  className="text-text-secondary hover:text-white p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl hover:bg-white/10 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -196,132 +245,137 @@ export const TaskDetailsPanel: React.FC = () => {
 
             {task ? (
               <div className="flex flex-col flex-1 overflow-hidden">
-                {/* Tabs */}
-                <div className="flex items-center gap-6 px-6 pt-4 border-b border-border">
+                {/* Editable Title */}
+                <div className="px-6 pt-6 pb-4">
+                  <textarea
+                    value={task.title}
+                    onChange={(e) => updateField('title', e.target.value)}
+                    placeholder="Task Title"
+                    className="w-full bg-transparent text-2xl font-bold text-white focus:outline-none resize-none placeholder-text-secondary/50 leading-tight"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="flex items-center gap-6 px-6 pt-2 pb-4 border-b border-border/50">
                   <button
                     onClick={() => setActiveTab('details')}
-                    className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === 'details' ? 'text-accent' : 'text-text-secondary hover:text-text-primary'}`}
+                    className={`pb-2 text-sm font-semibold transition-colors relative ${activeTab === 'details' ? 'text-accent' : 'text-text-secondary hover:text-white'}`}
                   >
                     Details
-                    {activeTab === 'details' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />}
+                    {activeTab === 'details' && <motion.div layoutId="activeTab" className="absolute -bottom-4 left-0 right-0 h-[2px] bg-accent" />}
                   </button>
                   <button
                     onClick={() => setActiveTab('comments')}
-                    className={`pb-3 text-sm font-medium transition-colors relative flex items-center gap-1.5 ${activeTab === 'comments' ? 'text-accent' : 'text-text-secondary hover:text-text-primary'}`}
+                    className={`pb-2 text-sm font-semibold transition-colors relative flex items-center gap-1.5 ${activeTab === 'comments' ? 'text-accent' : 'text-text-secondary hover:text-white'}`}
                   >
                     Comments
-                    <span className="bg-surface-hover text-[10px] px-1.5 py-0.5 rounded-full text-text-primary">{comments.length}</span>
-                    {activeTab === 'comments' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />}
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('activity')}
-                    className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === 'activity' ? 'text-accent' : 'text-text-secondary hover:text-text-primary'}`}
-                  >
-                    Activity
-                    {activeTab === 'activity' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />}
+                    <span className="bg-white/10 text-[10px] px-1.5 py-0.5 rounded-full text-white">{comments.length}</span>
+                    {activeTab === 'comments' && <motion.div layoutId="activeTab" className="absolute -bottom-4 left-0 right-0 h-[2px] bg-accent" />}
                   </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
                   {activeTab === 'details' && (
                     <div className="p-6 space-y-8">
-                      {/* Title */}
-                      <div>
-                        <textarea
-                          value={task.title}
-                          onChange={(e) => updateField('title', e.target.value)}
-                          placeholder="Task Title"
-                          className="w-full bg-transparent text-xl font-semibold text-text-primary focus:outline-none resize-none placeholder-text-secondary"
-                          rows={2}
-                        />
-                      </div>
-
                       {/* Meta Fields */}
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-4 text-sm">
-                          <div className="w-24 text-text-secondary flex items-center gap-2">
-                            <AlertCircle className="w-4 h-4" /> Priority
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="flex flex-col gap-3">
+                          <div className="text-text-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
+                            <AlertCircle className="w-3.5 h-3.5" /> Priority
                           </div>
-                          <select
-                            value={task.priority}
-                            onChange={(e) => updateField('priority', e.target.value)}
-                            className="bg-surface-hover border border-border rounded-md px-2 py-1 text-text-primary focus:outline-none focus:border-accent flex-1"
-                          >
-                            <option value="low">Low</option>
-                            <option value="normal">Normal</option>
-                            <option value="high">High</option>
-                            <option value="urgent">Urgent</option>
-                          </select>
+                          <div className="flex flex-col gap-2">
+                            {['low', 'normal', 'high', 'urgent'].map(p => (
+                              <button
+                                key={p}
+                                onClick={() => updateField('priority', p)}
+                                className={`w-full capitalize py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
+                                  task.priority === p 
+                                    ? getPriorityColors(p) 
+                                    : 'border-white/5 text-text-secondary hover:bg-white/5'
+                                }`}
+                              >
+                                {p}
+                              </button>
+                            ))}
+                          </div>
                         </div>
 
-                        <div className="flex items-center gap-4 text-sm">
-                          <div className="w-24 text-text-secondary flex items-center gap-2">
-                            <Calendar className="w-4 h-4" /> Due Date
+                        <div className="flex flex-col gap-3">
+                          <div className="text-text-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
+                            <Calendar className="w-3.5 h-3.5" /> Due Date
                           </div>
                           <input
                             type="date"
                             value={task.dueDate || ''}
                             onChange={(e) => updateField('dueDate', e.target.value)}
-                            className="bg-surface-hover border border-border rounded-md px-2 py-1 text-text-primary focus:outline-none focus:border-accent flex-1 color-scheme-dark"
+                            className="bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all color-scheme-dark shadow-inner"
                           />
-                        </div>
-                        
-                        <div className="flex items-start gap-4 text-sm">
-                          <div className="w-24 text-text-secondary flex items-center gap-2 mt-1">
-                            <Tag className="w-4 h-4" /> Labels
+
+                          <div className="text-text-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-widest mt-4">
+                            <Tag className="w-3.5 h-3.5" /> Story Points
                           </div>
-                          <div className="flex-1 space-y-2">
-                            <div className="flex flex-wrap gap-2">
-                              {(task.labels || []).map((label: string, index: number) => (
-                                <span key={index} className="bg-accent/20 text-accent border border-accent/30 px-2 py-0.5 rounded-md text-xs font-medium flex items-center gap-1">
-                                  {label}
-                                  <button 
-                                    onClick={() => {
-                                      const newLabels = task.labels.filter((_: any, i: number) => i !== index);
-                                      updateField('labels', newLabels);
-                                    }}
-                                    className="hover:text-text-primary ml-1"
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                </span>
-                              ))}
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Type label & press Enter..."
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                                  e.preventDefault();
-                                  const val = e.currentTarget.value.trim();
-                                  if (!(task.labels || []).includes(val)) {
-                                    updateField('labels', [...(task.labels || []), val]);
-                                  }
-                                  e.currentTarget.value = '';
-                                }
-                              }}
-                              className="w-full bg-surface-hover border border-border rounded-md px-2 py-1.5 text-xs text-text-primary focus:outline-none focus:border-accent"
+                          <div className="flex flex-wrap gap-2">
+                             <input
+                              type="number"
+                              placeholder="0"
+                              className="bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-sm font-medium text-white focus:outline-none focus:border-accent w-full text-center"
                             />
                           </div>
                         </div>
                       </div>
-
-                      <div className="h-px bg-border w-full" />
+                      
+                      {/* Labels */}
+                      <div className="flex flex-col gap-3">
+                        <div className="text-text-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
+                          <Tag className="w-3.5 h-3.5" /> Labels
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {(task.labels || []).map((label: string, index: number) => (
+                            <span key={index} className="bg-accent/20 text-accent border border-accent/30 shadow-[inset_0_0_8px_rgba(99,102,241,0.2)] px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5">
+                              {label}
+                              <button 
+                                onClick={() => {
+                                  const newLabels = task.labels.filter((_: any, i: number) => i !== index);
+                                  updateField('labels', newLabels);
+                                }}
+                                className="hover:bg-accent/40 rounded-full p-0.5 transition-colors"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          ))}
+                          <input
+                            type="text"
+                            placeholder="+ Add Label"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                                e.preventDefault();
+                                const val = e.currentTarget.value.trim();
+                                if (!(task.labels || []).includes(val)) {
+                                  updateField('labels', [...(task.labels || []), val]);
+                                }
+                                e.currentTarget.value = '';
+                              }
+                            }}
+                            className="bg-black/20 border border-dashed border-white/20 rounded-xl px-3 py-1.5 text-xs font-medium text-white focus:outline-none focus:border-accent w-24 transition-all focus:w-32 placeholder-text-secondary"
+                          />
+                        </div>
+                      </div>
 
                       {/* Description */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-sm font-medium text-text-primary">Description</h3>
-                          <div className="flex items-center gap-1 bg-surface-hover rounded-md p-0.5">
+                      <div className="bg-black/20 rounded-2xl p-4 border border-white/5">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-text-secondary text-xs font-bold uppercase tracking-widest">Description</h3>
+                          <div className="flex bg-white/5 p-1 rounded-xl">
                             <button 
                               onClick={() => setIsPreview(false)}
-                              className={`px-2 py-1 text-[10px] font-medium rounded-sm transition-colors ${!isPreview ? 'bg-background text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
+                              className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${!isPreview ? 'bg-accent shadow text-white' : 'text-text-secondary hover:text-white'}`}
                             >
                               Edit
                             </button>
                             <button 
                               onClick={() => setIsPreview(true)}
-                              className={`px-2 py-1 text-[10px] font-medium rounded-sm transition-colors ${isPreview ? 'bg-background text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
+                              className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${isPreview ? 'bg-accent shadow text-white' : 'text-text-secondary hover:text-white'}`}
                             >
                               Preview
                             </button>
@@ -333,11 +387,11 @@ export const TaskDetailsPanel: React.FC = () => {
                             value={task.description || ''}
                             onChange={(e) => updateField('description', e.target.value)}
                             placeholder="Add a more detailed description (Markdown supported)..."
-                            className="w-full bg-surface-hover/50 border border-transparent focus:border-accent/50 rounded-lg p-3 text-sm text-text-primary focus:outline-none min-h-[150px] resize-y placeholder-text-secondary/50 font-mono"
+                            className="w-full bg-transparent border border-transparent rounded-lg text-sm text-white focus:outline-none min-h-[120px] resize-y placeholder-text-secondary/50 font-mono"
                           />
                         ) : (
                           <div 
-                            className="w-full bg-surface-hover/30 border border-transparent rounded-lg p-3 text-sm text-text-primary min-h-[150px] markdown-preview"
+                            className="w-full text-sm text-white min-h-[120px] markdown-preview"
                             onDoubleClick={() => setIsPreview(false)}
                           >
                             {task.description ? (
@@ -353,72 +407,55 @@ export const TaskDetailsPanel: React.FC = () => {
                         )}
                       </div>
 
-                      <div className="h-px bg-border w-full" />
-
                       {/* Attachments */}
-                      <div>
+                      <div className="bg-black/20 rounded-2xl p-4 border border-white/5">
                         <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-sm font-medium text-text-primary flex items-center gap-2">
-                            <Paperclip className="w-4 h-4" /> Attachments
+                          <h3 className="text-text-secondary text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                            <Paperclip className="w-3.5 h-3.5" /> Attachments
                           </h3>
-                          <label className="cursor-pointer bg-surface-hover hover:bg-border/50 text-text-primary px-3 py-1.5 rounded-md text-xs font-medium transition-colors border border-border/50">
+                          <label className="cursor-pointer bg-white/5 hover:bg-white/10 px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-white flex items-center gap-1.5 shadow-sm border border-white/10 hover:border-white/20">
+                            <UploadCloud className="w-3.5 h-3.5" />
                             Upload File
-                            <input 
-                              type="file" 
-                              className="hidden" 
-                              onChange={handleFileUpload}
-                              accept="image/*,.pdf,.doc,.docx,.txt"
-                            />
+                            <input type="file" className="hidden" onChange={handleFileUpload} />
                           </label>
                         </div>
 
-                        {(task.attachments && task.attachments.length > 0) ? (
-                          <div className="grid grid-cols-2 gap-3">
-                            {task.attachments.map((attachment: any) => (
-                              <div key={attachment.id} className="relative group rounded-lg border border-border/50 overflow-hidden bg-surface-hover/30 aspect-square flex flex-col items-center justify-center">
-                                {attachment.mimeType.startsWith('image/') ? (
-                                  <img 
-                                    src={attachment.data} 
-                                    alt={attachment.name} 
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="p-4 flex flex-col items-center justify-center text-center">
-                                    <Paperclip className="w-8 h-8 text-text-secondary mb-2 opacity-50" />
-                                    <span className="text-xs text-text-primary font-medium truncate w-full px-2" title={attachment.name}>{attachment.name}</span>
-                                    <span className="text-[10px] text-text-secondary mt-1">{(attachment.size / 1024).toFixed(1)} KB</span>
+                        {(!task.attachments || task.attachments.length === 0) ? (
+                          <div className="flex flex-col items-center justify-center p-6 border border-dashed border-white/10 rounded-xl bg-black/10">
+                            <Paperclip className="w-6 h-6 text-text-secondary/50 mb-2" />
+                            <span className="text-sm font-medium text-text-secondary">No attachments yet.</span>
+                            <span className="text-xs text-text-secondary/50 mt-1">Upload a file up to 50MB.</span>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {task.attachments.map((file: any) => (
+                              <div key={file.id} className="flex items-center justify-between p-3 bg-black/40 border border-white/10 rounded-xl hover:border-white/20 transition-all group">
+                                <div className="flex items-center gap-3 overflow-hidden">
+                                  <div className="w-8 h-8 rounded-lg bg-accent/20 text-accent flex items-center justify-center shrink-0 border border-accent/30 shadow-[inset_0_0_8px_rgba(99,102,241,0.2)]">
+                                    <File className="w-4 h-4" />
                                   </div>
-                                )}
-                                
-                                <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 backdrop-blur-[2px]">
+                                  <div className="flex flex-col overflow-hidden">
+                                    <span className="text-sm text-white font-medium truncate">{file.name}</span>
+                                    <span className="text-[10px] text-text-secondary">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <a 
-                                    href={attachment.data} 
-                                    download={attachment.name}
-                                    className="bg-surface text-text-primary p-2 rounded-full hover:bg-accent hover:text-white transition-colors shadow-lg"
-                                    title="Download"
+                                    href={file.data} 
+                                    download={file.name}
+                                    className="p-1.5 text-text-secondary hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                                   >
                                     <Download className="w-4 h-4" />
                                   </a>
-                                  <button
-                                    onClick={() => {
-                                      if (window.confirm('Remove this attachment?')) {
-                                        updateField('attachments', task.attachments.filter((a: any) => a.id !== attachment.id));
-                                      }
-                                    }}
-                                    className="bg-surface text-red-400 p-2 rounded-full hover:bg-red-500 hover:text-white transition-colors shadow-lg"
-                                    title="Delete"
+                                  <button 
+                                    onClick={() => handleRemoveAttachment(file.id)}
+                                    className="p-1.5 text-text-secondary hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </button>
                                 </div>
                               </div>
                             ))}
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center p-6 border border-dashed border-border/60 rounded-xl bg-surface-hover/20">
-                            <Paperclip className="w-6 h-6 text-text-secondary opacity-30 mb-2" />
-                            <p className="text-sm text-text-secondary">No attachments yet.</p>
-                            <p className="text-xs text-text-secondary opacity-50">Upload a file up to 50MB.</p>
                           </div>
                         )}
                       </div>
@@ -427,91 +464,54 @@ export const TaskDetailsPanel: React.FC = () => {
 
                   {activeTab === 'comments' && (
                     <div className="h-full flex flex-col p-6">
-                      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4 mb-4">
-                        {comments.map(comment => (
-                          <div key={comment.id} className="flex gap-3 items-start">
-                            <div className="w-8 h-8 rounded-full bg-accent/20 text-accent flex items-center justify-center font-bold text-xs shrink-0 uppercase border border-accent/30">
-                              {comment.author.slice(0, 2)}
-                            </div>
-                            <div className="flex-1">
-                              <div className="bg-surface-hover/50 border border-border/50 p-3 rounded-xl rounded-tl-none text-sm shadow-sm relative">
-                                <div className="flex items-center justify-between mb-1.5">
-                                  <span className="font-semibold text-text-primary text-xs">{comment.author}</span>
-                                  <span className="text-[10px] text-text-secondary">{new Date(comment.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6 mb-4">
+                        {comments.map(comment => {
+                          const isYou = comment.author === 'You';
+                          return (
+                            <div key={comment.id} className={`flex gap-3 items-end ${isYou ? 'flex-row-reverse' : ''}`}>
+                              {!isYou && (
+                                <div className="w-8 h-8 rounded-full bg-accent/20 text-accent flex items-center justify-center font-bold text-xs shrink-0 uppercase border border-accent/30 shadow-[inset_0_0_8px_rgba(99,102,241,0.2)]">
+                                  {comment.author.slice(0, 2)}
                                 </div>
-                                <p className="text-text-secondary whitespace-pre-wrap leading-relaxed">{comment.text}</p>
+                              )}
+                              <div className={`flex flex-col ${isYou ? 'items-end' : 'items-start'} max-w-[85%]`}>
+                                <div className="flex items-center gap-2 mb-1 px-1">
+                                  <span className="font-semibold text-white text-[11px]">{isYou ? 'You' : comment.author}</span>
+                                  <span className="text-[10px] text-text-secondary">{new Date(comment.createdAt).toLocaleString(undefined, { hour: 'numeric', minute: '2-digit' })}</span>
+                                </div>
+                                <div className={`p-3 text-sm relative shadow-lg ${isYou ? 'bg-gradient-to-br from-accent to-purple-600 text-white rounded-2xl rounded-br-sm' : 'bg-white/10 border border-white/5 text-white rounded-2xl rounded-bl-sm backdrop-blur-md'}`}>
+                                  <p className="whitespace-pre-wrap leading-relaxed">{comment.text}</p>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                         {comments.length === 0 && (
                           <div className="flex flex-col items-center justify-center h-40 text-text-secondary">
                             <MessageSquare className="w-8 h-8 opacity-20 mb-2" />
-                            <p className="text-sm italic">No comments yet.</p>
-                            <p className="text-xs opacity-60">Start the conversation below.</p>
+                            <p className="text-sm font-medium">No comments yet.</p>
                           </div>
                         )}
                       </div>
 
-                      <form onSubmit={handleAddComment} className="flex gap-2 relative mt-auto border-t border-border pt-4">
+                      <form onSubmit={handleAddComment} className="mt-auto relative">
                         <input
                           type="text"
                           value={newComment}
                           onChange={(e) => setNewComment(e.target.value)}
-                          placeholder="Write a comment..."
-                          className="flex-1 bg-surface-hover border border-border rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-accent shadow-sm"
+                          placeholder="Type a message..."
+                          className="w-full bg-black/40 border border-white/10 rounded-full pl-5 pr-14 py-3.5 text-sm text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent shadow-inner transition-all"
                         />
                         <button
                           type="submit"
                           disabled={!newComment.trim()}
-                          className="absolute right-2 top-6 bg-accent text-white p-1.5 rounded-lg hover:bg-accent/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-accent text-white p-2.5 rounded-full hover:scale-105 transition-all disabled:opacity-50 shadow-lg shadow-accent/30 flex items-center justify-center"
                         >
-                          <Send className="w-4 h-4" />
+                          <Send className="w-4 h-4 ml-0.5" />
                         </button>
                       </form>
                     </div>
                   )}
-
-                  {activeTab === 'activity' && (
-                    <div className="relative pl-3 p-6 h-full overflow-y-auto custom-scrollbar">
-                      <div className="absolute left-[39px] top-8 bottom-0 w-px bg-border/50" />
-                      <div className="space-y-6">
-                        {activities.map((activity, idx) => (
-                          <motion.div 
-                            key={activity.id} 
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="relative flex gap-4 text-sm"
-                          >
-                            <div className="w-2.5 h-2.5 rounded-full bg-surface border-2 border-accent mt-1.5 z-10 shrink-0 shadow-[0_0_0_4px_var(--color-surface)]" />
-                            <div className="bg-surface-hover/30 border border-border/50 rounded-lg p-3 flex-1">
-                              <p className="text-text-primary mb-1">{activity.description}</p>
-                              <span className="text-[10px] text-text-secondary uppercase tracking-wider font-semibold">
-                                {new Date(activity.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                              </span>
-                            </div>
-                          </motion.div>
-                        ))}
-                        
-                        <motion.div 
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: activities.length * 0.05 }}
-                          className="relative flex gap-4 text-sm opacity-60"
-                        >
-                          <div className="w-2.5 h-2.5 rounded-full bg-surface border-2 border-border mt-1.5 z-10 shrink-0 shadow-[0_0_0_4px_var(--color-surface)]" />
-                          <div className="flex-1 py-1">
-                            <p className="text-text-secondary">Task created</p>
-                            <span className="text-[10px] text-text-secondary uppercase tracking-wider font-semibold">
-                              {new Date(task.createdAt || task.updatedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                            </span>
-                          </div>
-                        </motion.div>
-                      </div>
-                    </div>
-                  )}
-
                 </div>
               </div>
             ) : (

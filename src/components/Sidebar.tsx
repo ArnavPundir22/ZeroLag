@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Layout, Search, Plus, Trash2, Home, Link2, Moon, Sun, Download } from 'lucide-react';
+import { Activity, Layout, Search, Plus, Trash2, Home, Link2 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { useDatabase } from '../db/DatabaseProvider';
 import { v4 as uuidv4 } from 'uuid';
@@ -7,6 +7,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserButton, useUser } from '@clerk/react';
 import { useSyncContext } from '../hooks/useSyncEngine';
 import { Modal } from './Modal';
+import { SettingsModal } from './SettingsModal';
+import { Settings } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const { user } = useUser();
@@ -15,13 +17,13 @@ export const Sidebar: React.FC = () => {
   const setIsSearchOpen = useAppStore(state => state.setIsSearchOpen);
   const isSidebarOpen = useAppStore(state => state.isSidebarOpen);
   const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
-  const theme = useAppStore(state => state.theme);
-  const setTheme = useAppStore(state => state.setTheme);
+
   const db = useDatabase();
   const [boards, setBoards] = useState<any[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const { joinRemoteBoard } = useSyncContext();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   const [isJoining, setIsJoining] = useState(false);
   const [modalState, setModalState] = useState<{
@@ -45,26 +47,6 @@ export const Sidebar: React.FC = () => {
     return () => sub.unsubscribe();
   }, [db]);
 
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  }, []);
-
-  const handleInstallPwa = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const choiceResult = await deferredPrompt.userChoice;
-      if (choiceResult.outcome === 'accepted') {
-        setDeferredPrompt(null);
-      }
-    }
-  };
 
   const closeModal = () => {
     setModalState({ type: null });
@@ -186,7 +168,7 @@ export const Sidebar: React.FC = () => {
           <div>
             <Link 
               to="/" 
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition-colors ${
+              className={`w-full flex items-center gap-3 px-3 py-3 sm:py-2 rounded-lg font-medium text-sm transition-colors ${
                 location.pathname === '/' 
                   ? 'bg-surface-hover text-text-primary' 
                   : 'text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary'
@@ -212,7 +194,7 @@ export const Sidebar: React.FC = () => {
                     <Link
                       to={`/b/${board.id}`}
                       onClick={() => setCurrentBoardId(board.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition-colors ${
+                      className={`w-full flex items-center gap-3 px-3 py-3 sm:py-2 rounded-lg font-medium text-sm transition-colors ${
                         isActive 
                           ? 'bg-surface-hover text-text-primary' 
                           : 'text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary'
@@ -227,10 +209,10 @@ export const Sidebar: React.FC = () => {
                         e.stopPropagation();
                         setModalState({ type: 'delete', targetId: board.id });
                       }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-secondary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-red-500/10"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 sm:p-1 text-text-secondary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-red-500/10"
                       title="Delete Project"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
                   </div>
                 );
@@ -238,7 +220,7 @@ export const Sidebar: React.FC = () => {
             </div>
             <button
               onClick={() => setModalState({ type: 'join' })}
-              className={`w-full flex items-center gap-3 px-3 py-2 mt-4 rounded-lg font-medium text-sm transition-colors border border-dashed border-border text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary hover:border-accent/50`}
+              className={`w-full flex items-center gap-3 px-3 py-3 sm:py-2 mt-4 rounded-lg font-medium text-sm transition-colors border border-dashed border-border text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary hover:border-accent/50`}
             >
               <Link2 className="w-4 h-4" />
               Join Shared Project
@@ -248,23 +230,14 @@ export const Sidebar: React.FC = () => {
           <div>
             <div className="text-text-secondary text-xs font-medium px-3 mb-2 uppercase tracking-wider">Settings</div>
             <div className="space-y-0.5">
-              <button onClick={() => setIsSearchOpen(true)} className="w-full flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary rounded-lg font-medium text-sm transition-colors">
+              <button onClick={() => setIsSearchOpen(true)} className="w-full flex items-center gap-3 px-3 py-3 sm:py-2 text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary rounded-lg font-medium text-sm transition-colors">
                 <Search className="w-4 h-4" />
                 Search
               </button>
-              <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="w-full flex items-center justify-between px-3 py-2 text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary rounded-lg font-medium text-sm transition-colors">
-                <div className="flex items-center gap-3">
-                  {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                  Theme
-                </div>
-                <span className="text-[10px] uppercase tracking-wider bg-surface-hover px-1.5 py-0.5 rounded">{theme}</span>
+              <button onClick={() => setIsSettingsOpen(true)} className="w-full flex items-center gap-3 px-3 py-3 sm:py-2 text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary rounded-lg font-medium text-sm transition-colors">
+                <Settings className="w-4 h-4" />
+                Settings & Preferences
               </button>
-              {deferredPrompt && (
-                <button onClick={handleInstallPwa} className="w-full flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary rounded-lg font-medium text-sm transition-colors text-accent hover:text-accent">
-                  <Download className="w-4 h-4" />
-                  Install App
-                </button>
-              )}
             </div>
           </div>
         </nav>
@@ -330,6 +303,12 @@ export const Sidebar: React.FC = () => {
           </div>
         </div>
       </Modal>
+
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+        deferredPrompt={null} 
+      />
     </>
   );
 };

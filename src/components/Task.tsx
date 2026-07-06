@@ -46,14 +46,14 @@ export const Task: React.FC<TaskProps> = ({ task }) => {
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-surface hover:bg-surface-hover border border-border backdrop-blur-md rounded-xl p-4 mb-3 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 group relative cursor-pointer"
+      className="bg-surface/80 hover:bg-surface border border-white/10 backdrop-blur-xl rounded-xl p-4 mb-3 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(99,102,241,0.15)] hover:border-accent/30 hover:-translate-y-1 transition-all duration-300 group relative cursor-pointer overflow-hidden"
       onClick={() => setSelectedTaskId(task.id)}
     >
       <div className="flex items-start gap-3">
         <div
           {...attributes}
           {...listeners}
-          className="text-text-secondary cursor-grab active:cursor-grabbing w-5 h-5 mt-0.5 opacity-0 group-hover:opacity-100 shrink-0 transition-opacity"
+          className="text-text-secondary cursor-grab active:cursor-grabbing p-1 -ml-1 mt-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 shrink-0 transition-opacity touch-none"
           onClick={(e) => e.stopPropagation()} // Prevent opening panel when clicking the drag handle
         >
           <GripVertical className="w-5 h-5" />
@@ -76,11 +76,11 @@ export const Task: React.FC<TaskProps> = ({ task }) => {
 
           <div className="flex gap-2 mt-3 items-center">
             {task.priority && (
-              <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
-                task.priority === 'urgent' ? 'text-red-400 bg-red-400/10' :
-                task.priority === 'high' ? 'text-orange-400 bg-orange-400/10' :
-                task.priority === 'normal' ? 'text-blue-400 bg-blue-400/10' :
-                'text-emerald-400 bg-emerald-400/10'
+              <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border ${
+                task.priority === 'urgent' ? 'text-red-400 border-red-500/50 shadow-[0_0_8px_rgba(248,113,113,0.2)] bg-red-500/10' :
+                task.priority === 'high' ? 'text-orange-400 border-orange-500/50 shadow-[0_0_8px_rgba(251,146,60,0.2)] bg-orange-500/10' :
+                task.priority === 'normal' ? 'text-blue-400 border-blue-500/50 shadow-[0_0_8px_rgba(96,165,250,0.2)] bg-blue-500/10' :
+                'text-emerald-400 border-emerald-500/50 shadow-[0_0_8px_rgba(52,211,153,0.2)] bg-emerald-500/10'
               }`}>
                 {task.priority}
               </span>

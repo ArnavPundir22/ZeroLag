@@ -5,7 +5,7 @@ import { useUser } from '@clerk/react';
 
 const DatabaseContext = createContext<any>(null);
 
-export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const DatabaseProvider: React.FC<{ children: React.ReactNode, offlineUserId?: string }> = ({ children, offlineUserId }) => {
   const [db, setDb] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const setCurrentBoardId = useAppStore(state => state.setCurrentBoardId);
@@ -13,7 +13,9 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     let mounted = true;
-    if (!user) {
+    const activeUserId = user?.id || offlineUserId;
+    
+    if (!activeUserId) {
       setDb(null);
       resetDatabase();
       return;
@@ -21,7 +23,7 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const initDB = async () => {
       try {
-        const database = await getDatabase(user.id);
+        const database = await getDatabase(activeUserId);
         if (mounted) {
           setDb(database);
           
@@ -41,7 +43,7 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return () => {
       mounted = false;
     };
-  }, [setCurrentBoardId, user]);
+  }, [setCurrentBoardId, user?.id, offlineUserId]);
 
   if (loading) {
     return <div className="h-screen w-screen flex items-center justify-center bg-background text-text-secondary">Loading local database...</div>;

@@ -233,7 +233,6 @@ const BoardView = () => {
 };
 
 const AppContent = () => {
-  const setIsOffline = useAppStore(state => state.setIsOffline);
   const setIsSearchOpen = useAppStore(state => state.setIsSearchOpen);
   const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
   const theme = useAppStore(state => state.theme);
@@ -254,19 +253,6 @@ const AppContent = () => {
     e.preventDefault();
     setTheme(theme === 'light' ? 'dark' : 'light');
   }, [theme, setTheme]);
-
-  useEffect(() => {
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, [setIsOffline]);
 
   useEffect(() => {
     if (theme === 'light') {
@@ -371,7 +357,40 @@ const SignedOut = ({ children }: { children: React.ReactNode }) => {
 };
 
 const ProtectedApp = () => {
-  const { isLoaded } = useUser();
+  const { isLoaded, isSignedIn, user } = useUser();
+  const isOffline = useAppStore(state => state.isOffline);
+  const setIsOffline = useAppStore(state => state.setIsOffline);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [setIsOffline]);
+
+  useEffect(() => {
+    if (user?.id) {
+      localStorage.setItem('zerolag_offline_user_id', user.id);
+    } else if (isLoaded && !isSignedIn && !isOffline) {
+      localStorage.removeItem('zerolag_offline_user_id');
+    }
+  }, [user?.id, isLoaded, isSignedIn, isOffline]);
+
+  const offlineUserId = localStorage.getItem('zerolag_offline_user_id');
+
+  if (isOffline && offlineUserId) {
+    return (
+      <DatabaseProvider offlineUserId={offlineUserId}>
+        <AppContent />
+      </DatabaseProvider>
+    );
+  }
 
   if (!isLoaded) {
     return <div className="h-screen w-screen flex items-center justify-center text-text-secondary">Loading...</div>;

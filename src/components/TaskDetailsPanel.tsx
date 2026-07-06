@@ -11,10 +11,12 @@ import remarkGfm from 'remark-gfm';
 export const TaskDetailsPanel: React.FC = () => {
   const selectedTaskId = useAppStore(state => state.selectedTaskId);
   const setSelectedTaskId = useAppStore(state => state.setSelectedTaskId);
+  const currentBoardId = useAppStore(state => state.currentBoardId);
   const db = useDatabase();
   
   const [task, setTask] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
+  const [columns, setColumns] = useState<any[]>([]);
 
   const [newComment, setNewComment] = useState('');
   const [isPreview, setIsPreview] = useState(true);
@@ -33,10 +35,10 @@ export const TaskDetailsPanel: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!selectedTaskId || !db) {
+    if (!selectedTaskId || !db || !currentBoardId) {
       setTask(null);
       setComments([]);
-
+      setColumns([]);
       return;
     }
 
@@ -47,13 +49,17 @@ export const TaskDetailsPanel: React.FC = () => {
     const cSub = db.comments.find({ selector: { taskId: selectedTaskId }, sort: [{ createdAt: 'asc' }] }).$.subscribe((docs: any[]) => {
       setComments(docs.map((d: any) => d.toJSON()));
     });
-
+    
+    const colSub = db.columns.find({ selector: { boardId: currentBoardId }, sort: [{ position: 'asc' }] }).$.subscribe((cols: any[]) => {
+      setColumns(cols.map((c: any) => c.toJSON()));
+    });
 
     return () => {
       sub.unsubscribe();
       cSub.unsubscribe();
+      colSub.unsubscribe();
     };
-  }, [selectedTaskId, db]);
+  }, [selectedTaskId, db, currentBoardId]);
 
   useHotkeys('esc', () => setSelectedTaskId(null), { enableOnFormTags: true });
 
@@ -92,6 +98,10 @@ export const TaskDetailsPanel: React.FC = () => {
         else if (field === 'title') desc = `Renamed task`;
         else if (field === 'labels') desc = `Updated labels`;
         else if (field === 'description') desc = `Updated description`;
+        else if (field === 'columnId') {
+           const col = columns.find(c => c.id === value);
+           desc = `Moved to ${col?.title || 'another column'}`;
+        }
         
         if (desc) {
           await db.activities.insert({
@@ -320,6 +330,21 @@ export const TaskDetailsPanel: React.FC = () => {
                             onChange={(e) => updateField('dueDate', e.target.value)}
                             className="bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all color-scheme-dark shadow-inner"
                           />
+                          
+                          <div className="text-text-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-widest mt-4">
+                            <Tag className="w-3.5 h-3.5" /> Status
+                          </div>
+                          <select
+                            value={task.columnId || ''}
+                            onChange={(e) => updateField('columnId', e.target.value)}
+                            className="bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-inner appearance-none w-full"
+                          >
+                            {columns.map(col => (
+                              <option key={col.id} value={col.id} className="bg-background text-text-primary">
+                                {col.title}
+                              </option>
+                            ))}
+                          </select>
 
                           <div className="text-text-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-widest mt-4">
                             <Tag className="w-3.5 h-3.5" /> Story Points

@@ -103,4 +103,13 @@
   .markdown-preview hr { @apply border-t border-border my-4; }
   .markdown-preview strong { @apply font-bold text-white; }
   .markdown-preview em { @apply italic; }
+
+  /* Hide scrollbar for containers that use custom-scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .custom-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
 }

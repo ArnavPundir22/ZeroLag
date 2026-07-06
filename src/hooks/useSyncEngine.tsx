@@ -87,7 +87,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const entityId = op.entity_id || op.entityId || payloadData.id;
         const doc = await collection.findOne({ selector: { id: entityId } }).exec();
 
-        const { _rev, _deleted, _attachments, _meta, ...cleanData } = payloadData;
+        const { _rev, _deleted, _attachments, _meta, _authorName, ...cleanData } = payloadData;
 
         if (doc) {
           await doc.patch(cleanData);
@@ -188,7 +188,24 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const state = useAppStore.getState();
                 if (state.notificationsEnabled) {
                   playNotificationSound();
-                  state.setGlobalToastMessage("A collaborator made changes. If you can't see the changes, please refresh the app so that the changes can be synced.");
+                  
+                  const parsedPayload = typeof op.payload === 'string' ? JSON.parse(op.payload) : (op.payload || {});
+                  const author = parsedPayload._authorName || 'A collaborator';
+                  
+                  let actionVerb = 'made changes to';
+                  if (op.type === 'CREATE') actionVerb = 'added a new';
+                  else if (op.type === 'UPDATE') actionVerb = 'updated a';
+                  else if (op.type === 'DELETE') actionVerb = 'deleted a';
+                  
+                  let entityName = 'item';
+                  if (op.entity === 'TASKS') entityName = 'task';
+                  else if (op.entity === 'BOARDS') entityName = 'board';
+                  else if (op.entity === 'COLUMNS') entityName = 'column';
+                  else if (op.entity === 'COMMENTS') entityName = 'comment';
+                  
+                  const message = `${author} ${actionVerb} ${entityName}. If you can't see the changes, please refresh the app so that the changes can be synced.`;
+                  
+                  state.setGlobalToastMessage(message);
                 }
               }
             }
@@ -229,15 +246,20 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      const payload = pendingOps.map((op: any) => ({
-        id: op.id,
-        board_id: op.boardId || 'unknown',
-        type: op.type,
-        entity: op.entity,
-        entity_id: op.entityId,
-        payload: (typeof op.payload === 'string' && op.payload.trim()) ? JSON.parse(op.payload) : (op.payload || {}),
-        timestamp: op.timestamp
-      })).filter((op: any) => op.board_id !== 'unknown');
+      const payload = pendingOps.map((op: any) => {
+        const parsedPayload = (typeof op.payload === 'string' && op.payload.trim()) ? JSON.parse(op.payload) : (op.payload || {});
+        parsedPayload._authorName = user?.fullName || user?.primaryEmailAddress?.emailAddress || 'A collaborator';
+        
+        return {
+          id: op.id,
+          board_id: op.boardId || 'unknown',
+          type: op.type,
+          entity: op.entity,
+          entity_id: op.entityId,
+          payload: parsedPayload,
+          timestamp: op.timestamp
+        };
+      }).filter((op: any) => op.board_id !== 'unknown');
 
       if (payload.length === 0) {
         // Mark pending ops as synced locally even if they were skipped, to prevent endless loop

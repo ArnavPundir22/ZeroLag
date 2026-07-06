@@ -4,8 +4,38 @@ import { useAppStore } from '../store';
 import { useUser, useSession } from '@clerk/react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+let lastNotificationTime = 0;
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const playNotificationSound = () => {
+  const now = Date.now();
+  if (now - lastNotificationTime < 2000) return; // Throttle to once every 2 seconds
+  lastNotificationTime = now;
+
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+  } catch (err) {
+    console.error('Failed to play notification sound', err);
+  }
+};
+
 
 interface SyncContextType {
   isOffline: boolean;
@@ -141,9 +171,26 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Only process if it belongs to a board we know about
             const currentBoards = await db.boards.find().exec();
             const currentBoardIds = currentBoards.map((b: any) => b.id);
+            
+            let localOps: string[] = [];
+            try {
+              localOps = JSON.parse(localStorage.getItem('zerolag_local_ops') || '[]');
+            } catch (e) {
+              console.warn('[SYNC] Failed to parse local ops', e);
+            }
+            const isLocal = localOps.includes(op.id);
+            
             if (op.board_id && currentBoardIds.includes(op.board_id)) {
               await handleRemoteOperation(op);
               localStorage.setItem('last_sync_timestamp', op.timestamp);
+              
+              if (!isLocal) {
+                const state = useAppStore.getState();
+                if (state.notificationsEnabled) {
+                  playNotificationSound();
+                  state.setGlobalToastMessage("A collaborator made changes. If you can't see the changes, please refresh the app so that the changes can be synced.");
+                }
+              }
             }
           })
           .subscribe();
@@ -242,6 +289,15 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setSyncStatus('error');
           isSyncingRef.current = false;
           return;
+        }
+        
+        // Track locally created ops to prevent notifying ourselves
+        try {
+          const localOps = JSON.parse(localStorage.getItem('zerolag_local_ops') || '[]');
+          const updatedLocalOps = [...localOps, ...newOps.map((o: any) => o.id)].slice(-200);
+          localStorage.setItem('zerolag_local_ops', JSON.stringify(updatedLocalOps));
+        } catch (e) {
+          console.warn('[SYNC] Failed to track local ops', e);
         }
       }
 

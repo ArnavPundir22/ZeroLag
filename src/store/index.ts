@@ -20,6 +20,10 @@ interface AppState {
   setFilterLabels: (labels: string[]) => void;
   theme: 'dark' | 'light';
   setTheme: (theme: 'dark' | 'light') => void;
+  notificationsEnabled: boolean;
+  setNotificationsEnabled: (enabled: boolean) => void;
+  globalToastMessage: string | null;
+  setGlobalToastMessage: (msg: string | null) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -43,10 +47,14 @@ export const useAppStore = create<AppState>()(
       setFilterLabels: (labels) => set({ filterLabels: labels }),
       theme: 'dark',
       setTheme: (theme) => set({ theme }),
+      notificationsEnabled: false,
+      setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
+      globalToastMessage: null,
+      setGlobalToastMessage: (msg) => set({ globalToastMessage: msg }),
     }),
     {
       name: 'zerolag-store',
-      partialize: (state) => ({ theme: state.theme }), // Only persist the theme
+      partialize: (state) => ({ theme: state.theme, notificationsEnabled: state.notificationsEnabled }),
     }
   )
 );

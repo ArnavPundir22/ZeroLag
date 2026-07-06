@@ -34,7 +34,11 @@ const BoardView = () => {
   const filterLabels = useAppStore(state => state.filterLabels);
   const setFilterLabels = useAppStore(state => state.setFilterLabels);
   const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
+  const notificationsEnabled = useAppStore(state => state.notificationsEnabled);
+  const setNotificationsEnabled = useAppStore(state => state.setNotificationsEnabled);
+  
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false);
   const [availableLabels, setAvailableLabels] = useState<string[]>([]);
   
   const db = useDatabase();
@@ -218,9 +222,45 @@ const BoardView = () => {
             <Share2 className="w-4 h-4" />
             <span className="hidden sm:inline font-medium">Share</span>
           </button>
-          <button className="flex items-center justify-center min-w-[36px] min-h-[36px] text-text-secondary hover:text-text-primary transition-colors rounded-lg hover:bg-surface-hover">
-            <Bell className="w-5 h-5" />
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setIsNotificationMenuOpen(!isNotificationMenuOpen)}
+              className={`flex items-center justify-center min-w-[36px] min-h-[36px] transition-colors rounded-lg ${isNotificationMenuOpen || notificationsEnabled ? 'text-accent bg-accent/10' : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'}`}
+              title="Notifications"
+            >
+              <Bell className="w-5 h-5" />
+            </button>
+            
+            {isNotificationMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsNotificationMenuOpen(false)} />
+                <div className="absolute top-full right-0 mt-2 w-64 bg-surface border border-border rounded-lg shadow-xl z-50 p-4">
+                  <h4 className="text-sm font-bold text-text-primary mb-2">Notifications</h4>
+                  <p className="text-xs text-text-secondary mb-4">Would you like to receive notifications for task updates?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setNotificationsEnabled(true);
+                        setIsNotificationMenuOpen(false);
+                      }}
+                      className={`flex-1 py-1.5 rounded text-xs font-medium transition-colors ${notificationsEnabled ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'bg-surface-hover text-text-secondary hover:text-text-primary hover:bg-white/5 border border-transparent'}`}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      onClick={() => {
+                        setNotificationsEnabled(false);
+                        setIsNotificationMenuOpen(false);
+                      }}
+                      className={`flex-1 py-1.5 rounded text-xs font-medium transition-colors ${!notificationsEnabled ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'bg-surface-hover text-text-secondary hover:text-text-primary hover:bg-white/5 border border-transparent'}`}
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
@@ -241,6 +281,8 @@ const AppContent = () => {
   const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
   const theme = useAppStore(state => state.theme);
   const setTheme = useAppStore(state => state.setTheme);
+  const globalToastMessage = useAppStore(state => state.globalToastMessage);
+  const setGlobalToastMessage = useAppStore(state => state.setGlobalToastMessage);
 
   // Global Keyboard Shortcuts
   useHotkeys('mod+k', (e) => {
@@ -266,6 +308,15 @@ const AppContent = () => {
     }
   }, [theme]);
 
+  useEffect(() => {
+    if (globalToastMessage) {
+      const timer = setTimeout(() => {
+        setGlobalToastMessage(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [globalToastMessage, setGlobalToastMessage]);
+
   return (
     <SyncProvider>
       <div className="flex h-screen bg-transparent text-text-primary overflow-hidden font-sans">
@@ -280,6 +331,16 @@ const AppContent = () => {
         
         <TaskDetailsPanel />
         <SearchOverlay />
+        
+        {globalToastMessage && (
+          <div className="fixed top-4 right-4 bg-surface border border-border shadow-2xl rounded-lg p-4 z-[100] flex flex-col gap-2 max-w-sm animate-in fade-in slide-in-from-top-4">
+            <div className="flex items-center gap-3">
+              <Bell className="w-5 h-5 text-accent animate-pulse" />
+              <span className="text-sm font-bold text-text-primary">New Update</span>
+            </div>
+            <span className="text-xs text-text-secondary leading-relaxed">{globalToastMessage}</span>
+          </div>
+        )}
       </div>
     </SyncProvider>
   );

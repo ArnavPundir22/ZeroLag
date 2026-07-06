@@ -21,6 +21,11 @@ export const TaskDetailsPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'activity'>('details');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+  const [localTitle, setLocalTitle] = useState('');
+  const [isTitleFocused, setIsTitleFocused] = useState(false);
+  const [localDescription, setLocalDescription] = useState('');
+  const [isDescFocused, setIsDescFocused] = useState(false);
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
@@ -248,8 +253,13 @@ export const TaskDetailsPanel: React.FC = () => {
                 {/* Editable Title */}
                 <div className="px-6 pt-6 pb-4">
                   <textarea
-                    value={task.title}
-                    onChange={(e) => updateField('title', e.target.value)}
+                    value={isTitleFocused ? localTitle : task.title}
+                    onFocus={() => { setIsTitleFocused(true); setLocalTitle(task.title); }}
+                    onBlur={() => setIsTitleFocused(false)}
+                    onChange={(e) => {
+                      setLocalTitle(e.target.value);
+                      updateField('title', e.target.value);
+                    }}
                     placeholder="Task Title"
                     className="w-full bg-transparent text-2xl font-bold text-white focus:outline-none resize-none placeholder-text-secondary/50 leading-tight"
                     rows={2}
@@ -384,8 +394,13 @@ export const TaskDetailsPanel: React.FC = () => {
                         
                         {!isPreview ? (
                           <textarea
-                            value={task.description || ''}
-                            onChange={(e) => updateField('description', e.target.value)}
+                            value={isDescFocused ? localDescription : (task.description || '')}
+                            onFocus={() => { setIsDescFocused(true); setLocalDescription(task.description || ''); }}
+                            onBlur={() => setIsDescFocused(false)}
+                            onChange={(e) => {
+                              setLocalDescription(e.target.value);
+                              updateField('description', e.target.value);
+                            }}
                             placeholder="Add a more detailed description (Markdown supported)..."
                             className="w-full bg-transparent border border-transparent rounded-lg text-sm text-white focus:outline-none min-h-[120px] resize-y placeholder-text-secondary/50 font-mono"
                           />

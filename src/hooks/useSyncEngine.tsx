@@ -190,7 +190,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         entity_id: op.entityId,
         payload: (typeof op.payload === 'string' && op.payload.trim()) ? JSON.parse(op.payload) : (op.payload || {}),
         timestamp: op.timestamp
-      })).filter(op => op.board_id !== 'unknown');
+      })).filter((op: any) => op.board_id !== 'unknown');
 
       if (payload.length === 0) {
         // Mark pending ops as synced locally even if they were skipped, to prevent endless loop

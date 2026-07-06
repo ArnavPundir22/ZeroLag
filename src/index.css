@@ -84,3 +84,23 @@
     opacity: 0.15;
   }
 }
+
+@layer utilities {
+  .markdown-preview h1 { @apply text-2xl font-bold mt-4 mb-2 text-white; }
+  .markdown-preview h2 { @apply text-xl font-bold mt-4 mb-2 text-white; }
+  .markdown-preview h3 { @apply text-lg font-bold mt-3 mb-2 text-white; }
+  .markdown-preview p { @apply mb-3 leading-relaxed text-text-primary; }
+  .markdown-preview ul { @apply list-disc list-inside mb-3 space-y-1 text-text-primary; }
+  .markdown-preview ol { @apply list-decimal list-inside mb-3 space-y-1 text-text-primary; }
+  .markdown-preview a { @apply text-accent hover:underline; }
+  .markdown-preview blockquote { @apply border-l-4 border-accent pl-4 italic my-4 text-text-secondary bg-white/5 py-2 rounded-r-lg; }
+  .markdown-preview code { @apply bg-black/40 px-1.5 py-0.5 rounded text-xs font-mono text-accent; }
+  .markdown-preview pre { @apply bg-black/60 p-3 rounded-lg overflow-x-auto mb-4 border border-white/10; }
+  .markdown-preview pre code { @apply bg-transparent p-0 text-text-primary; }
+  .markdown-preview table { @apply w-full text-left border-collapse mb-4; }
+  .markdown-preview th { @apply border-b border-border p-2 font-semibold text-white; }
+  .markdown-preview td { @apply border-b border-border/50 p-2; }
+  .markdown-preview hr { @apply border-t border-border my-4; }
+  .markdown-preview strong { @apply font-bold text-white; }
+  .markdown-preview em { @apply italic; }
+}

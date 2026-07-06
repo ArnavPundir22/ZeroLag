@@ -207,7 +207,7 @@ export const Board: React.FC = () => {
       </div>
       
       <DragOverlay>
-        {activeTask ? <Task task={activeTask} /> : null}
+        {activeTask ? <Task task={activeTask} columnTitle={columns.find(c => c.id === activeTask.columnId)?.title} /> : null}
       </DragOverlay>
     </DndContext>
   );

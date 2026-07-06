@@ -121,7 +121,7 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
       <div className="flex-1 overflow-y-auto overflow-x-hidden p-1 min-h-[150px] custom-scrollbar">
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           {tasks.map(task => (
-            <Task key={task.id} task={task} />
+            <Task key={task.id} task={task} columnTitle={column.title} />
           ))}
         </SortableContext>
 

@@ -5,6 +5,7 @@ import { useAppStore } from '../store';
 
 interface TaskProps {
   task: any;
+  columnTitle?: string;
 }
 
 const stripMarkdown = (text: string) => {
@@ -17,7 +18,7 @@ const stripMarkdown = (text: string) => {
     .trim();
 };
 
-export const Task: React.FC<TaskProps> = ({ task }) => {
+export const Task: React.FC<TaskProps> = ({ task, columnTitle }) => {
   const setSelectedTaskId = useAppStore(state => state.setSelectedTaskId);
   
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -90,7 +91,12 @@ export const Task: React.FC<TaskProps> = ({ task }) => {
               const [year, month, day] = task.dueDate.split('-');
               const formattedDate = `${month}/${day}/${year} AT 11:59P.M.`;
               const dueDateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 23, 59, 59);
-              const isOverdue = new Date() > dueDateObj;
+              
+              const isCompleted = columnTitle?.toLowerCase().includes('done') || columnTitle?.toLowerCase().includes('complete');
+              const completedDate = new Date(task.updatedAt);
+              
+              const isOverdue = isCompleted ? completedDate > dueDateObj : new Date() > dueDateObj;
+              const isCompletedBeforeDeadline = isCompleted && completedDate <= dueDateObj;
               
               return (
                 <>
@@ -101,9 +107,14 @@ export const Task: React.FC<TaskProps> = ({ task }) => {
                   }`}>
                     {formattedDate}
                   </span>
-                  {isOverdue && (
+                  {isOverdue && !isCompleted && (
                     <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border text-red-500 border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.3)] bg-red-500/20 animate-pulse">
                       DELAY
+                    </span>
+                  )}
+                  {isCompletedBeforeDeadline && (
+                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border text-emerald-500 border-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.3)] bg-emerald-500/20">
+                      TASK COMPLETED
                     </span>
                   )}
                 </>

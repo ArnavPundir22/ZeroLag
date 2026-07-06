@@ -190,7 +190,17 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         entity_id: op.entityId,
         payload: (typeof op.payload === 'string' && op.payload.trim()) ? JSON.parse(op.payload) : (op.payload || {}),
         timestamp: op.timestamp
-      }));
+      })).filter(op => op.board_id !== 'unknown');
+
+      if (payload.length === 0) {
+        // Mark pending ops as synced locally even if they were skipped, to prevent endless loop
+        for (const op of pendingOps) {
+          const doc = await db.operations.findOne({ selector: { id: op.id } }).exec();
+          if (doc) await doc.patch({ status: 'SYNCED' });
+        }
+        isSyncingRef.current = false;
+        return;
+      }
 
       // If CREATE BOARD, we must insert into board_access FIRST so RLS allows the operations
       const boardCreateOps = pendingOps.filter((op: any) => op.entity === 'BOARDS' && op.type === 'CREATE');
@@ -228,6 +238,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (insertError) {
           console.error('[SYNC] Failed to insert operations to Supabase:', insertError);
+          console.error('[SYNC] Payload that failed:', JSON.stringify(newOps, null, 2));
           setSyncStatus('error');
           isSyncingRef.current = false;
           return;
@@ -278,8 +289,10 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       // Add ourselves to board_access if not already there
-      // We assume if they have the ID, they have the invite link
-      await supabaseRef.current.from('board_access').upsert({ board_id: boardId, user_id: user?.id });
+      const { error: upsertError } = await supabaseRef.current.from('board_access').upsert({ board_id: boardId, user_id: user?.id });
+      if (upsertError) {
+        console.error('[SYNC] Failed to upsert board_access:', upsertError);
+      }
 
       const { data: operations, error } = await supabaseRef.current
         .from('operations')

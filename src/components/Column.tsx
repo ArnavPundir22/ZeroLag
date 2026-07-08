@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Task } from './Task';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { useDatabase } from '../db/DatabaseProvider';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -16,6 +16,7 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
+  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const db = useDatabase();
 
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
@@ -81,7 +82,7 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
     <div 
       ref={setNodeRef}
       style={style}
-      className={`flex flex-col flex-shrink-0 min-w-full md:min-w-[280px] md:max-w-[320px] bg-surface/40 backdrop-blur-3xl rounded-2xl p-3 sm:p-4 h-full max-h-full min-h-0 border border-border shadow-lg ${isDragging ? 'opacity-50' : ''}`}
+      className={`flex flex-col flex-shrink-0 min-w-full md:min-w-[280px] md:max-w-[320px] bg-surface/40 backdrop-blur-3xl rounded-2xl p-3 sm:p-4 border border-border shadow-lg transition-all duration-300 ${isDragging ? 'opacity-50' : ''} ${!isMobileExpanded ? 'h-auto md:h-full md:max-h-full md:min-h-0' : 'h-[65vh] md:h-full max-h-[80vh] md:max-h-full min-h-0'}`}
     >
       <div className="flex items-center justify-between mb-4 px-1">
         <div 
@@ -103,8 +104,14 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
               onDoubleClick={() => setIsEditingTitle(true)}
               className="font-semibold text-text-primary text-sm tracking-wide flex items-center gap-2 w-full"
             >
-              {column.title}
-              <span className="bg-surface-hover text-text-secondary text-xs px-2 py-0.5 rounded-full font-medium">
+              <button 
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsMobileExpanded(!isMobileExpanded); }}
+                className="md:hidden text-text-secondary hover:text-text-primary p-1 -ml-1 rounded-md hover:bg-surface-hover active:bg-surface-hover/80"
+              >
+                {isMobileExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              </button>
+              <span className="truncate">{column.title}</span>
+              <span className="bg-surface-hover text-text-secondary text-xs px-2 py-0.5 rounded-full font-medium shrink-0">
                 {tasks.length}
               </span>
             </h3>
@@ -118,7 +125,7 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto overflow-x-hidden p-1 min-h-[150px] custom-scrollbar">
+      <div className={`flex-1 overflow-y-auto overflow-x-hidden p-1 custom-scrollbar md:min-h-[150px] ${isMobileExpanded ? 'block' : 'hidden md:block'}`}>
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           {tasks.map(task => (
             <Task key={task.id} task={task} columnTitle={column.title} />

@@ -308,6 +308,14 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (insertError) {
           console.error('[SYNC] Failed to insert operations to Supabase:', insertError);
           console.error('[SYNC] Payload that failed:', JSON.stringify(newOps, null, 2));
+          
+          // If it's a permanent error like RLS (42501) or other DB errors, mark as FAILED to prevent queue blocking
+          // Network errors are thrown, so insertError here is a Supabase API/DB error
+          for (const op of newOps) {
+            const doc = await db.operations.findOne({ selector: { id: op.id } }).exec();
+            if (doc) await doc.patch({ status: 'FAILED' });
+          }
+          
           setSyncStatus('error');
           isSyncingRef.current = false;
           return;

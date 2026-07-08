@@ -4,12 +4,25 @@ ZeroLag completely eliminates the need for a custom Node.js backend by securely 
 
 ---
 
-## 1. Authentication Flow (Clerk)
-User authentication is handled entirely by Clerk.
-1. The user logs in via Clerk's `<SignIn />` component.
-2. Clerk issues a session JWT.
-3. We request a specialized **Supabase JWT Template** from Clerk using `await getToken({ template: 'supabase' })`.
-4. This JWT contains the user's Clerk ID in the `sub` claim and is signed with the Supabase project's secret key.
+## 1. Authentication Flow (Clerk to Supabase)
+
+```mermaid
+sequenceDiagram
+    participant User as User / Browser
+    participant Clerk as Clerk (Auth)
+    participant App as React App
+    participant Supabase as Supabase (DB)
+
+    User->>Clerk: Enters Email / Password
+    Clerk-->>App: Issues standard Session Token
+    App->>Clerk: Request Supabase JWT Template
+    Clerk-->>App: Returns JWT signed with Supabase Secret
+    
+    App->>Supabase: REST API call (Includes JWT in header)
+    Supabase->>Supabase: Verify JWT Signature
+    Supabase->>Supabase: Execute queries under `auth.uid()`
+    Supabase-->>App: Return secure data
+```
 
 ---
 
@@ -53,4 +66,3 @@ ZeroLag allows users to invite collaborators via a "Project Code" (the Board ID)
 - Board IDs are standard **UUIDv4** strings.
 - UUIDv4 strings are 128-bit numbers, meaning they are cryptographically impossible to guess.
 - Because the ID cannot be guessed, treating the ID itself as a bearer token for joining a project is a secure model (similar to Google Drive "Anyone with the link").
-- When a user enters a valid Board ID, the RLS policy allows them to `INSERT` themselves into the `board_access` table, granting them permanent access.

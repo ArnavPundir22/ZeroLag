@@ -71,8 +71,20 @@ Guidelines:
     const cleanText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
     
     return JSON.parse(cleanText);
-  } catch (error) {
+  } catch (error: any) {
     console.error("AI Parser Error:", error);
-    throw new Error("Failed to parse the timetable image. Please ensure the image is clear and the API key is valid.");
+    
+    // Check for specific API error statuses
+    if (error?.status === 429) {
+      throw new Error("API Quota Exceeded. You have reached your Gemini API usage limit. Please try again later or upgrade your Google AI Studio plan.");
+    }
+    if (error?.status === 400) {
+      throw new Error("Invalid API Key. Please ensure your VITE_GEMINI_API_KEY is correct in your .env.local file.");
+    }
+    if (error?.status === 503) {
+      throw new Error("Google AI servers are currently overloaded. Please try again in a few minutes.");
+    }
+    
+    throw new Error(error?.message || "Failed to parse the timetable image. Please ensure the image is clear and the API key is valid.");
   }
 };

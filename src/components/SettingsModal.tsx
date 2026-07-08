@@ -124,7 +124,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, d
 
         {/* Data Section */}
         <section>
-          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-3">Data & Import</h3>
+          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-3">Templates</h3>
           <button
             onClick={handleImportTimetable}
             className="w-full bg-black/20 border border-white/10 rounded-2xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
@@ -134,12 +134,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, d
                 <Database className="w-5 h-5" />
               </div>
               <div className="text-left">
-                <h4 className="text-sm font-bold text-white">Import Timetable</h4>
-                <p className="text-xs text-text-secondary">Load B.Tech 3rd Year Sem V schedule</p>
+                <h4 className="text-sm font-bold text-white">Weekly Timetable</h4>
+                <p className="text-xs text-text-secondary">Create a blank Mon-Sun schedule</p>
               </div>
             </div>
             <span className="px-3 py-1.5 bg-white/10 text-white text-xs font-bold uppercase rounded-lg">
-              Import
+              Create
             </span>
           </button>
         </section>

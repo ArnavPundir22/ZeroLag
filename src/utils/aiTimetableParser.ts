@@ -59,7 +59,10 @@ Guidelines:
             }
           ]
         }
-      ]
+      ],
+      config: {
+        responseMimeType: "application/json"
+      }
     });
 
     const text = response.text || '';

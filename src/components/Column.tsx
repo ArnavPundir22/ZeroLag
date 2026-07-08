@@ -81,7 +81,7 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
     <div 
       ref={setNodeRef}
       style={style}
-      className={`flex flex-col flex-1 min-w-full md:min-w-[280px] w-full bg-surface/40 backdrop-blur-3xl rounded-2xl p-3 sm:p-4 h-full border border-border shadow-lg ${isDragging ? 'opacity-50' : ''}`}
+      className={`flex flex-col flex-shrink-0 min-w-full md:min-w-[280px] md:max-w-[320px] bg-surface/40 backdrop-blur-3xl rounded-2xl p-3 sm:p-4 h-full max-h-full min-h-0 border border-border shadow-lg ${isDragging ? 'opacity-50' : ''}`}
     >
       <div className="flex items-center justify-between mb-4 px-1">
         <div 

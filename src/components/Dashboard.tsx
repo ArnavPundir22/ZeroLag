@@ -169,7 +169,7 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto bg-background custom-scrollbar relative">
+    <div className="flex-1 overflow-y-auto bg-background custom-scrollbar relative min-h-0">
       {/* Top App Bar */}
       <div className="flex items-center justify-between px-4 sm:px-8 h-16 border-b border-border bg-surface/30 sticky top-0 z-10 backdrop-blur-md">
         <div className="flex items-center gap-3">

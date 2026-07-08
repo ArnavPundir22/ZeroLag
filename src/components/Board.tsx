@@ -192,8 +192,8 @@ export const Board: React.FC = () => {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex-1 w-full h-full overflow-hidden">
-        <div className="h-full w-full flex flex-col md:flex-row gap-4 sm:gap-6 px-4 sm:px-8 py-4 sm:py-8 overflow-y-auto md:overflow-x-auto md:overflow-y-hidden custom-scrollbar items-start">
+      <div className="flex-1 w-full h-full overflow-hidden min-h-0">
+        <div className="h-full w-full flex flex-col md:flex-row gap-4 sm:gap-6 px-4 sm:px-8 py-4 sm:py-8 overflow-y-auto md:overflow-x-auto md:overflow-y-hidden custom-scrollbar items-stretch">
           <SortableContext items={columns.map(c => c.id)} strategy={horizontalListSortingStrategy}>
             {columns.map(col => (
               <Column

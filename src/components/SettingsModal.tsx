@@ -2,9 +2,9 @@ import React from 'react';
 import { Modal } from './Modal';
 import { useAppStore } from '../store';
 
-import { Moon, Sun, Monitor, Download, RefreshCw, Wifi, WifiOff } from 'lucide-react';
-
-interface SettingsModalProps {
+import { Moon, Sun, Monitor, Download, RefreshCw, Wifi, WifiOff, Database } from 'lucide-react';
+import { useUser } from '@clerk/react';
+import { importTimetable } from '../utils/importTimetable';interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   deferredPrompt: any;
@@ -24,6 +24,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, d
       if (choiceResult.outcome === 'accepted') {
         // App installed successfully
       }
+    }
+  };
+
+  const { user } = useUser();
+  const handleImportTimetable = async () => {
+    if (user) {
+      await importTimetable(user.id);
+      onClose();
     }
   };
 
@@ -113,6 +121,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, d
             </button>
           </section>
         )}
+
+        {/* Data Section */}
+        <section>
+          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-3">Data & Import</h3>
+          <button
+            onClick={handleImportTimetable}
+            className="w-full bg-black/20 border border-white/10 rounded-2xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-purple-500/10 text-purple-400 flex items-center justify-center">
+                <Database className="w-5 h-5" />
+              </div>
+              <div className="text-left">
+                <h4 className="text-sm font-bold text-white">Import Timetable</h4>
+                <p className="text-xs text-text-secondary">Load B.Tech 3rd Year Sem V schedule</p>
+              </div>
+            </div>
+            <span className="px-3 py-1.5 bg-white/10 text-white text-xs font-bold uppercase rounded-lg">
+              Import
+            </span>
+          </button>
+        </section>
       </div>
     </Modal>
   );

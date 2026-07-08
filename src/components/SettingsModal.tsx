@@ -1,9 +1,10 @@
 import React from 'react';
 import { Modal } from './Modal';
 import { useAppStore } from '../store';
-import { Moon, Sun, Monitor, Download, RefreshCw, Wifi, WifiOff, Database } from 'lucide-react';
+import { Moon, Sun, Monitor, Download, RefreshCw, Wifi, WifiOff, Database, Sparkles, Loader2 } from 'lucide-react';
 import { useUser } from '@clerk/react';
-import { importTimetable } from '../utils/importTimetable';
+import { importTimetable, importDynamicTimetable } from '../utils/importTimetable';
+import { parseTimetableImage } from '../utils/aiTimetableParser';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -17,6 +18,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, d
   const isOffline = useAppStore(state => state.isOffline);
   const isOnline = !isOffline;
   const status = useAppStore(state => state.syncStatus);
+  const [isAiLoading, setIsAiLoading] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleInstallPwa = async () => {
     if (deferredPrompt) {
@@ -33,6 +36,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, d
     if (user) {
       await importTimetable(user.id);
       onClose();
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Get API key from env
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+      alert("Please add VITE_GEMINI_API_KEY to your .env.local file to use AI Magic Import.");
+      return;
+    }
+
+    try {
+      setIsAiLoading(true);
+      const timetableData = await parseTimetableImage(file, apiKey);
+      if (timetableData && timetableData.length > 0) {
+        await importDynamicTimetable(user.id, timetableData);
+        onClose();
+      } else {
+        alert("AI could not extract a valid timetable schedule from this image.");
+      }
+    } catch (error: any) {
+      alert(error.message || "Failed to process image.");
+    } finally {
+      setIsAiLoading(false);
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -141,6 +173,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, d
             </div>
             <span className="px-3 py-1.5 bg-white/10 text-white text-xs font-bold uppercase rounded-lg">
               Create
+            </span>
+          </button>
+
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            className="hidden"
+            onChange={handleImageUpload}
+          />
+
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isAiLoading}
+            className="w-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-2xl p-4 flex items-center justify-between hover:bg-white/5 transition-colors mt-3 group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                {isAiLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+              </div>
+              <div className="text-left">
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  AI Magic Import
+                  <span className="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 text-[9px] uppercase tracking-wider">Beta</span>
+                </h4>
+                <p className="text-xs text-text-secondary">{isAiLoading ? 'Analyzing image with AI...' : 'Upload an image of your schedule'}</p>
+              </div>
+            </div>
+            <span className="px-3 py-1.5 bg-blue-500/20 text-blue-400 text-xs font-bold uppercase rounded-lg border border-blue-500/30">
+              {isAiLoading ? 'Wait' : 'Upload'}
             </span>
           </button>
         </section>

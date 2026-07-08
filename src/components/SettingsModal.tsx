@@ -19,7 +19,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, d
   const isOnline = !isOffline;
   const status = useAppStore(state => state.syncStatus);
   const [isAiLoading, setIsAiLoading] = React.useState(false);
+  const [loadingMessageIndex, setLoadingMessageIndex] = React.useState(0);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const loadingMessages = [
+    "Analyzing image with AI...",
+    "Extracting timetable data...",
+    "Structuring columns and rows...",
+    "Building Kanban board...",
+    "Almost there..."
+  ];
+
+  React.useEffect(() => {
+    if (isAiLoading) {
+      const interval = setInterval(() => {
+        setLoadingMessageIndex(prev => (prev + 1) % loadingMessages.length);
+      }, 2500);
+      return () => clearInterval(interval);
+    } else {
+      setLoadingMessageIndex(0);
+    }
+  }, [isAiLoading]);
 
   const handleInstallPwa = async () => {
     if (deferredPrompt) {
@@ -198,7 +218,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, d
                   AI Magic Import
                   <span className="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 text-[9px] uppercase tracking-wider">Beta</span>
                 </h4>
-                <p className="text-xs text-text-secondary">{isAiLoading ? 'Analyzing image with AI...' : 'Upload an image of your schedule'}</p>
+                <p className="text-xs text-text-secondary transition-all duration-300">
+                  {isAiLoading ? loadingMessages[loadingMessageIndex] : 'Upload an image of your schedule'}
+                </p>
               </div>
             </div>
             <span className="px-3 py-1.5 bg-blue-500/20 text-blue-400 text-xs font-bold uppercase rounded-lg border border-blue-500/30">

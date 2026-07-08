@@ -5,6 +5,7 @@ import { Plus, LayoutTemplate, Clock, ArrowRight, Share2, Loader2, Menu, Setting
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useUser, UserButton } from '@clerk/react';
+import { seedSectionATimetable } from '../utils/importTimetable';
 import { useSyncContext } from '../hooks/useSyncEngine';
 import { useAppStore } from '../store';
 import { Modal } from './Modal';
@@ -150,6 +151,13 @@ export const Dashboard: React.FC = () => {
     
     setIsJoining(true);
     setJoinError('');
+
+    if (joinCode.trim() === 'seed:sectionA' && user) {
+      await seedSectionATimetable(user.id);
+      setJoinCode('');
+      setIsJoining(false);
+      return;
+    }
     
     // Check if we already have it
     const existing = await db.boards.findOne({ selector: { id: joinCode.trim() } }).exec();

@@ -52,6 +52,11 @@ export const AppLayout = () => {
   }, [globalToastMessage, setGlobalToastMessage]);
 
   useEffect(() => {
+    // Check if the event fired before React mounted
+    if ((window as any).deferredPromptEvent) {
+      setDeferredPrompt((window as any).deferredPromptEvent);
+    }
+
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);

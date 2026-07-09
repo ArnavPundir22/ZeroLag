@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { useDatabase } from '../db/DatabaseProvider';
+import { useDatabase } from '../../../db/DatabaseProvider';
 
 import { Plus, LayoutDashboard, Clock, ArrowRight, Share2, Loader2, Menu, Settings, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useUser, UserButton } from '@clerk/react';
-import { useSyncContext } from '../hooks/useSyncEngine';
-import { useAppStore } from '../store';
-import { Modal } from './Modal';
-import { SettingsModal } from './SettingsModal';
+import { useSyncContext } from '../../../hooks/useSyncEngine';
+import { useAppStore } from '../../../store';
+import { Modal } from '../../../components/ui/Modal';
+import { SettingsModal } from '../../settings/components/SettingsModal';
 
 const ProjectCard = ({ board, navigate, onDelete }: { board: any, navigate: any, onDelete: (id: string) => void }) => {
   const db = useDatabase();

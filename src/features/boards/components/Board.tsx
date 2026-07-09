@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { DndContext, DragOverlay, closestCorners, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { Column } from './Column';
-import { Task } from './Task';
-import { useDatabase } from '../db/DatabaseProvider';
-import { useAppStore } from '../store';
+import { Task } from '../../tasks/components/Task';
+import { useDatabase } from '../../../db/DatabaseProvider';
+import { useAppStore } from '../../../store';
 import { v4 as uuidv4 } from 'uuid';
 
 export const Board: React.FC = () => {

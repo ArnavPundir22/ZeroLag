@@ -1,7 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
-import { useAppStore } from '../store';
+import { useAppStore } from '../../../store';
 
 interface TaskProps {
   task: any;

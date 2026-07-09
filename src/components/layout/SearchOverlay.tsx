@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAppStore } from '../store';
-import { useDatabase } from '../db/DatabaseProvider';
+import { useAppStore } from '../../store';
+import { useDatabase } from '../../db/DatabaseProvider';
 import { Search, X } from 'lucide-react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { motion, AnimatePresence } from 'framer-motion';

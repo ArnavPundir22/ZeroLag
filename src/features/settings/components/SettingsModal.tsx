@@ -1,6 +1,6 @@
 import React from 'react';
-import { Modal } from './Modal';
-import { useAppStore } from '../store';
+import { Modal } from '../../../components/ui/Modal';
+import { useAppStore } from '../../../store';
 import { Moon, Sun, Monitor, Download, RefreshCw, Wifi, WifiOff, Bell, BellOff } from 'lucide-react';
 
 interface SettingsModalProps {

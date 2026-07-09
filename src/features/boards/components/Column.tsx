@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Task } from './Task';
+import { Task } from '../../tasks/components/Task';
 import { Plus, ChevronDown, ChevronRight } from 'lucide-react';
-import { useDatabase } from '../db/DatabaseProvider';
+import { useDatabase } from '../../../db/DatabaseProvider';
 import { v4 as uuidv4 } from 'uuid';
 
 interface ColumnProps {

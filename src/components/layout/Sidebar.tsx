@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Activity, Layout, Search, Plus, Trash2, Home, Link2 } from 'lucide-react';
-import { useAppStore } from '../store';
-import { useDatabase } from '../db/DatabaseProvider';
+import { useAppStore } from '../../store';
+import { useDatabase } from '../../db/DatabaseProvider';
 import { v4 as uuidv4 } from 'uuid';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserButton, useUser } from '@clerk/react';
-import { useSyncContext } from '../hooks/useSyncEngine';
-import { Modal } from './Modal';
-import { SettingsModal } from './SettingsModal';
+import { useSyncContext } from '../../hooks/useSyncEngine';
+import { Modal } from '../ui/Modal';
+import { SettingsModal } from '../../features/settings/components/SettingsModal';
 import { Settings, Database, Sparkles, Loader2 } from 'lucide-react';
-import { importTimetable, importDynamicTimetable } from '../utils/importTimetable';
-import { parseTimetableImage } from '../utils/aiTimetableParser';
+import { importTimetable, importDynamicTimetable } from '../../utils/importTimetable';
+import { parseTimetableImage } from '../../utils/aiTimetableParser';
 
 export const Sidebar: React.FC = () => {
   const { user } = useUser();

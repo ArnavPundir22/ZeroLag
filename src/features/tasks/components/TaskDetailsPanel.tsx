@@ -479,7 +479,7 @@ export const TaskDetailsPanel: React.FC = () => {
                                     <span className="text-[10px] text-text-secondary">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
                                   <a 
                                     href={file.data} 
                                     download={file.name}

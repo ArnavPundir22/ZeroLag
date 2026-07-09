@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2, LogOut, Calendar as CalendarIcon, Layout, Video, MessageSquare } from 'lucide-react';
+import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2, LogOut, Calendar as CalendarIcon, Layout, Video, MessageSquare, X } from 'lucide-react';
 import { useDatabase } from '../../../db/DatabaseProvider';
 import { useAppStore } from '../../../store';
 import { Board } from '../components/Board';
@@ -37,7 +37,8 @@ export const BoardView = () => {
   
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [availableLabels, setAvailableLabels] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<'board' | 'calendar' | 'chat'>('board');
+  const [viewMode, setViewMode] = useState<'board' | 'calendar'>('board');
+  const [isChatOpen, setIsChatOpen] = useState(false);
   
   const db = useDatabase();
   const [boardTitle, setBoardTitle] = useState('Board');
@@ -218,12 +219,6 @@ export const BoardView = () => {
                 >
                   <CalendarIcon className="w-3.5 h-3.5" /> Calendar
                 </button>
-                <button
-                  onClick={() => setViewMode('chat')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-md transition-colors ${viewMode === 'chat' ? 'bg-surface text-white shadow' : 'text-text-secondary hover:text-white'}`}
-                >
-                  <MessageSquare className="w-3.5 h-3.5" /> Chat
-                </button>
               </div>
 
               <div className="relative">
@@ -400,12 +395,6 @@ export const BoardView = () => {
               >
                 <CalendarIcon className="w-3.5 h-3.5" /> Calendar
               </button>
-              <button
-                onClick={() => setViewMode('chat')}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-md transition-colors ${viewMode === 'chat' ? 'bg-surface text-white shadow' : 'text-text-secondary hover:text-white'}`}
-              >
-                <MessageSquare className="w-3.5 h-3.5" /> Chat
-              </button>
             </div>
             
             <div className="relative">
@@ -491,10 +480,34 @@ export const BoardView = () => {
         </div>
       </header>
 
-      {viewMode === 'board' ? <Board /> : viewMode === 'calendar' ? <CalendarView /> : <ProjectChat />}
+      {viewMode === 'board' ? <Board /> : <CalendarView />}
+
+      {/* Floating Chat Button */}
+      <button
+        onClick={() => setIsChatOpen(!isChatOpen)}
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-accent hover:bg-accent/90 text-white shadow-xl shadow-accent/20 flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-50"
+      >
+        <MessageSquare className="w-6 h-6" />
+      </button>
+
+      {/* Chat Panel Overlay */}
+      {isChatOpen && (
+        <div className="fixed bottom-24 right-6 w-80 sm:w-96 h-[500px] max-h-[calc(100vh-120px)] bg-surface/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl overflow-hidden z-50 flex flex-col animate-in slide-in-from-bottom-10 fade-in">
+          <div className="shrink-0 h-12 border-b border-border bg-background/50 flex items-center justify-between px-4">
+            <h3 className="font-semibold text-text-primary flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-accent" />
+              Project Chat
+            </h3>
+            <button onClick={() => setIsChatOpen(false)} className="p-1 hover:bg-surface-hover rounded-md text-text-secondary hover:text-text-primary transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <ProjectChat />
+        </div>
+      )}
 
       {toastMessage && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-surface border border-border shadow-xl rounded-lg px-4 py-3 z-50 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-surface border border-border shadow-xl rounded-lg px-4 py-3 z-[60] flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
           <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           <span className="text-sm font-medium text-text-primary">{toastMessage}</span>
         </div>

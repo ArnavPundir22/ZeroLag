@@ -143,12 +143,17 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const allBoardIds = Array.from(new Set([...remoteBoardIds, ...localBoardIds]));
 
         if (allBoardIds.length > 0) {
-          const { data: operations, error } = await supabase
+          let query = supabase
             .from('operations')
             .select('*')
             .in('board_id', allBoardIds)
-            .gt('timestamp', lastSync)
             .order('timestamp', { ascending: true });
+
+          if (lastSync && lastSync !== '0') {
+            query = query.gt('timestamp', lastSync);
+          }
+
+          const { data: operations, error } = await query;
 
           if (error) {
             console.error('[SYNC] Failed to fetch operations:', error);

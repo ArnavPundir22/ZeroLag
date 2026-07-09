@@ -209,7 +209,7 @@ export const Sidebar: React.FC = () => {
                         e.stopPropagation();
                         setModalState({ type: 'delete', targetId: board.id });
                       }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 sm:p-1 text-text-secondary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-red-500/10"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 sm:p-1 text-text-secondary hover:text-red-400 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity rounded hover:bg-red-500/10"
                       title="Delete Project"
                     >
                       <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />

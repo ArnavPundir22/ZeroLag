@@ -18,11 +18,16 @@ ZeroLag is a local-first project management platform designed to eliminate loadi
 
 ### 2.2 Workspace & Board Management
 - **Dashboard**: The central hub displaying all accessible projects/boards.
+- **Sidebar Navigation**: A fully scrollable side panel providing quick access to projects, templates, settings, and informational pages.
+- **Project Configuration**: Users can intuitively rename projects directly from the Board header.
 - **Visual Identity**: Boards inherit a visually distinct, premium "Lumina" design system characterized by glassmorphism, deep dark themes, and electric indigo accents.
 
 ### 2.3 Kanban & Task Execution
 - **Column Management**: Vertical columns (e.g., Todo, In Progress, Done).
 - **Drag & Drop**: Users can visually drag tasks between columns. Resolves instantly on UI.
+
+### 2.4 Informational Content
+- **App Context**: Static pages for "About", "FAQ", and "Terms and Conditions", easily accessible via the sidebar to provide transparency and product information.
 
 ---
 

@@ -8,7 +8,9 @@ import { UserButton, useUser } from '@clerk/react';
 import { useSyncContext } from '../hooks/useSyncEngine';
 import { Modal } from './Modal';
 import { SettingsModal } from './SettingsModal';
-import { Settings } from 'lucide-react';
+import { Settings, Database, Sparkles, Loader2 } from 'lucide-react';
+import { importTimetable, importDynamicTimetable } from '../utils/importTimetable';
+import { parseTimetableImage } from '../utils/aiTimetableParser';
 
 export const Sidebar: React.FC = () => {
   const { user } = useUser();
@@ -33,6 +35,63 @@ export const Sidebar: React.FC = () => {
     targetId?: string;
   }>({ type: null });
   const [inputValue, setInputValue] = useState('');
+  
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const loadingMessages = [
+    "Analyzing image with AI...",
+    "Extracting timetable data...",
+    "Structuring columns and rows...",
+    "Building Kanban board...",
+    "Almost there..."
+  ];
+
+  useEffect(() => {
+    if (isAiLoading) {
+      const interval = setInterval(() => {
+        setLoadingMessageIndex(prev => (prev + 1) % loadingMessages.length);
+      }, 2500);
+      return () => clearInterval(interval);
+    } else {
+      setLoadingMessageIndex(0);
+    }
+  }, [isAiLoading]);
+
+  const handleImportTimetable = async () => {
+    if (user) {
+      await importTimetable(user.id);
+      setIsSidebarOpen(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+      setModalState({ type: 'alert', title: 'API Key Required', message: 'Please add VITE_GEMINI_API_KEY to your .env.local file to use AI Magic Import.' });
+      return;
+    }
+
+    try {
+      setIsAiLoading(true);
+      const timetableData = await parseTimetableImage(file, apiKey);
+      if (timetableData && timetableData.length > 0) {
+        await importDynamicTimetable(user.id, timetableData);
+        setIsSidebarOpen(false);
+      } else {
+        setModalState({ type: 'alert', title: 'Parsing Failed', message: 'AI could not extract a valid timetable schedule from this image.' });
+      }
+    } catch (error: any) {
+      setModalState({ type: 'alert', title: 'Error', message: error.message || "Failed to process image." });
+    } finally {
+      setIsAiLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   // Close sidebar on navigation on mobile
   useEffect(() => {
@@ -225,6 +284,31 @@ export const Sidebar: React.FC = () => {
               <Link2 className="w-4 h-4" />
               Join Shared Project
             </button>
+          </div>
+
+          <div>
+            <div className="text-text-secondary text-xs font-medium px-3 mb-2 uppercase tracking-wider">Templates</div>
+            <div className="space-y-0.5">
+              <button onClick={handleImportTimetable} className="w-full flex items-center gap-3 px-3 py-3 sm:py-2 text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary rounded-lg font-medium text-sm transition-colors">
+                <Database className="w-4 h-4" />
+                Weekly Timetable
+              </button>
+              
+              <button 
+                onClick={() => fileInputRef.current?.click()} 
+                disabled={isAiLoading} 
+                className="w-full flex items-center justify-between gap-3 px-3 py-3 sm:py-2 text-text-secondary hover:bg-blue-500/10 hover:text-blue-400 rounded-lg font-medium text-sm transition-colors group"
+              >
+                <div className="flex items-center gap-3 truncate">
+                  {isAiLoading ? <Loader2 className="w-4 h-4 animate-spin text-blue-400 shrink-0" /> : <Sparkles className="w-4 h-4 group-hover:text-blue-400 shrink-0" />}
+                  <span className={`truncate ${isAiLoading ? 'text-blue-400' : ''}`}>
+                    {isAiLoading ? loadingMessages[loadingMessageIndex] : 'AI Magic Import'}
+                  </span>
+                </div>
+                {!isAiLoading && <span className="text-[9px] uppercase tracking-wider bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-full shrink-0">Beta</span>}
+              </button>
+              <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleImageUpload} />
+            </div>
           </div>
 
           <div>

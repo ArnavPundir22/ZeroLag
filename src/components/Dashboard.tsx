@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDatabase } from '../db/DatabaseProvider';
 
-import { Plus, LayoutTemplate, Clock, ArrowRight, Share2, Loader2, Menu, Settings, Trash2 } from 'lucide-react';
+import { Plus, LayoutDashboard, Clock, ArrowRight, Share2, Loader2, Menu, Settings, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useUser, UserButton } from '@clerk/react';
@@ -50,48 +50,60 @@ const ProjectCard = ({ board, navigate, onDelete }: { board: any, navigate: any,
   return (
     <div 
       onClick={() => navigate(`/b/${board.id}`)}
-      className="group h-[200px] bg-surface border border-border backdrop-blur-xl rounded-2xl p-6 flex flex-col hover:border-accent/50 hover:shadow-[0_8px_30px_rgb(99,102,241,0.15)] hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden"
+      className="group h-[240px] relative bg-surface border border-white/5 rounded-[32px] p-6 flex flex-col hover:-translate-y-2 transition-all duration-500 cursor-pointer overflow-hidden shadow-2xl hover:border-white/10 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] isolate"
     >
-      <div className="absolute inset-0 border-t border-white/5 rounded-2xl pointer-events-none" />
+      {/* Abstract Glowing Mesh Gradient Background */}
+      <div className="absolute top-[-20%] right-[-10%] w-48 h-48 bg-blue-500/20 rounded-full blur-[60px] group-hover:bg-blue-500/30 group-hover:scale-110 transition-all duration-700 -z-10" />
+      <div className="absolute bottom-[-20%] left-[-10%] w-48 h-48 bg-purple-500/20 rounded-full blur-[60px] group-hover:bg-purple-500/30 group-hover:scale-110 transition-all duration-700 -z-10" />
       
-      <div className="flex justify-between items-start mb-4 relative z-10">
-        <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center border border-accent/30 shadow-[inset_0_0_12px_rgba(99,102,241,0.2)]">
-          <LayoutTemplate className="w-5 h-5 text-accent" />
+      {/* Delete Button (Absolute Top Right) */}
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onDelete(board.id);
+        }}
+        className="absolute top-6 right-6 z-20 w-10 h-10 rounded-full bg-white/5 backdrop-blur-xl flex items-center justify-center border border-white/10 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 transition-all duration-300 text-white/50 opacity-100 md:opacity-0 md:group-hover:opacity-100 shadow-lg"
+        title="Delete Project"
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
+
+      {/* Top Bar: Icon */}
+      <div className="flex justify-start items-start z-10 mb-6">
+        <div className="w-14 h-14 rounded-[20px] bg-white/5 backdrop-blur-xl flex items-center justify-center border border-white/10 group-hover:border-white/20 group-hover:bg-white/10 transition-all duration-500 shadow-lg">
+          <LayoutDashboard className="w-7 h-7 text-white/90 drop-shadow-md" />
         </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onDelete(board.id);
-            }}
-            className="p-2 text-text-secondary hover:text-red-400 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity rounded-lg hover:bg-red-500/10"
-            title="Delete Project"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">
-            <ArrowRight className="w-5 h-5 text-accent" />
+      </div>
+      
+      <div className="z-10 mt-auto relative">
+        <div className="pr-12">
+          <h3 className="text-2xl font-bold text-white mb-1.5 line-clamp-1 tracking-tight group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 transition-all duration-300">
+            {board.title}
+          </h3>
+          
+          <div className="flex items-center gap-2 text-xs text-white/50 font-medium uppercase tracking-widest mb-5">
+            <Clock className="w-3.5 h-3.5" />
+            <span>Synced {new Date(board.updatedAt).toLocaleDateString()}</span>
           </div>
         </div>
-      </div>
-      
-      <h3 className="text-lg font-semibold text-text-primary mb-1 pr-8 truncate">{board.title}</h3>
-      <div className="flex items-center gap-2 text-[11px] text-text-secondary font-medium uppercase tracking-wider mb-auto">
-        <Clock className="w-3 h-3" />
-        <span>Synced {new Date(board.updatedAt).toLocaleDateString()}</span>
-      </div>
-      
-      <div className="mt-4 w-full">
-        <div className="flex justify-between text-xs font-semibold mb-2">
-          <span className="text-text-secondary">Progress</span>
-          <span className="text-accent">{progress}% Complete</span>
+
+        {/* Arrow Right (Absolute Right near title) */}
+        <div className="absolute right-0 top-2 w-10 h-10 rounded-full bg-white/5 backdrop-blur-xl flex items-center justify-center border border-white/10 text-white transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:bg-white/10 shadow-lg -translate-x-2 group-hover:translate-x-0">
+          <ArrowRight className="w-4 h-4" />
         </div>
-        <div className="h-1.5 w-full bg-surface-hover rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-gradient-to-r from-accent to-blue-400 rounded-full transition-all duration-1000 ease-out" 
-            style={{ width: `${progress}%` }} 
-          />
+        
+        <div className="w-full">
+          <div className="flex justify-between text-[11px] font-bold tracking-wide mb-2 uppercase">
+            <span className="text-white/50">Progress</span>
+            <span className="text-white">{progress}%</span>
+          </div>
+          <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden shadow-inner">
+            <div 
+              className="h-full bg-gradient-to-r from-blue-400 to-purple-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(168,85,247,0.5)]" 
+              style={{ width: `${progress}%` }} 
+            />
+          </div>
         </div>
       </div>
     </div>

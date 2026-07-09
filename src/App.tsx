@@ -36,10 +36,8 @@ const BoardView = () => {
   const setFilterLabels = useAppStore(state => state.setFilterLabels);
   const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
   const notificationsEnabled = useAppStore(state => state.notificationsEnabled);
-  const setNotificationsEnabled = useAppStore(state => state.setNotificationsEnabled);
   
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false);
   const [availableLabels, setAvailableLabels] = useState<string[]>([]);
   
   const db = useDatabase();
@@ -231,45 +229,6 @@ const BoardView = () => {
             <Share2 className="w-4 h-4" />
             <span className="hidden sm:inline font-medium">Share</span>
           </button>
-          <div className="relative">
-            <button 
-              onClick={() => setIsNotificationMenuOpen(!isNotificationMenuOpen)}
-              className={`flex items-center justify-center min-w-[32px] sm:min-w-[36px] min-h-[32px] sm:min-h-[36px] p-1.5 sm:px-3 transition-colors rounded-lg ${isNotificationMenuOpen || notificationsEnabled ? 'text-accent bg-accent/10' : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'}`}
-              title="Notifications"
-            >
-              <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-            
-            {isNotificationMenuOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setIsNotificationMenuOpen(false)} />
-                <div className="absolute top-full right-0 mt-2 w-64 bg-surface border border-border rounded-lg shadow-xl z-50 p-4">
-                  <h4 className="text-sm font-bold text-text-primary mb-2">Notifications</h4>
-                  <p className="text-xs text-text-secondary mb-4">Would you like to receive notifications for task updates?</p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setNotificationsEnabled(true);
-                        setIsNotificationMenuOpen(false);
-                      }}
-                      className={`flex-1 py-1.5 rounded text-xs font-medium transition-colors ${notificationsEnabled ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'bg-surface-hover text-text-secondary hover:text-text-primary hover:bg-white/5 border border-transparent'}`}
-                    >
-                      Yes
-                    </button>
-                    <button
-                      onClick={() => {
-                        setNotificationsEnabled(false);
-                        setIsNotificationMenuOpen(false);
-                      }}
-                      className={`flex-1 py-1.5 rounded text-xs font-medium transition-colors ${!notificationsEnabled ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'bg-surface-hover text-text-secondary hover:text-text-primary hover:bg-white/5 border border-transparent'}`}
-                    >
-                      No
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
         </div>
       </header>
 

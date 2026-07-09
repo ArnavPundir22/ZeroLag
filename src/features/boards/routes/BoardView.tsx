@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2 } from 'lucide-react';
+import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2, LogOut } from 'lucide-react';
 import { useDatabase } from '../../../db/DatabaseProvider';
 import { useAppStore } from '../../../store';
 import { Board } from '../components/Board';
+import { useClerk } from '@clerk/react';
 
 export const BoardRouteWrapper = () => {
   const { boardId } = useParams();
@@ -19,6 +20,7 @@ export const BoardRouteWrapper = () => {
 };
 
 export const BoardView = () => {
+  const { signOut } = useClerk();
   const currentBoardId = useAppStore(state => state.currentBoardId);
   const isOffline = useAppStore(state => state.isOffline);
   const syncStatus = useAppStore(state => state.syncStatus);
@@ -219,6 +221,14 @@ export const BoardView = () => {
           >
             <Share2 className="w-4 h-4" />
             <span className="hidden sm:inline font-medium">Share</span>
+          </button>
+          <button 
+            onClick={() => signOut()}
+            className="flex items-center justify-center min-w-[32px] sm:min-w-[36px] min-h-[32px] sm:min-h-[36px] gap-2 p-1.5 sm:px-3 rounded-lg border border-border text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            title="Log Out"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline font-medium">Log Out</span>
           </button>
         </div>
       </header>

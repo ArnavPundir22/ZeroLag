@@ -4,16 +4,17 @@ import { useAppStore } from '../../store';
 import { useDatabase } from '../../db/DatabaseProvider';
 import { v4 as uuidv4 } from 'uuid';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { UserButton, useUser } from '@clerk/react';
+import { UserButton, useUser, useClerk } from '@clerk/react';
 import { useSyncContext } from '../../hooks/useSyncEngine';
 import { Modal } from '../ui/Modal';
 import { SettingsModal } from '../../features/settings/components/SettingsModal';
-import { Settings, Database, Sparkles, Loader2, Download } from 'lucide-react';
+import { Settings, Database, Sparkles, Loader2, Download, LogOut } from 'lucide-react';
 import { importTimetable, importDynamicTimetable } from '../../utils/importTimetable';
 import { parseTimetableImage } from '../../utils/aiTimetableParser';
 
 export const Sidebar: React.FC = () => {
   const { user } = useUser();
+  const { signOut } = useClerk();
   const currentBoardId = useAppStore(state => state.currentBoardId);
   const setCurrentBoardId = useAppStore(state => state.setCurrentBoardId);
   const setIsSearchOpen = useAppStore(state => state.setIsSearchOpen);

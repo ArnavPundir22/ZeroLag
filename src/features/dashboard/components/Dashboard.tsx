@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useDatabase } from '../../../db/DatabaseProvider';
 
-import { Plus, LayoutDashboard, Clock, ArrowRight, Share2, Loader2, Menu, Settings, Trash2 } from 'lucide-react';
+import { Plus, LayoutDashboard, Clock, ArrowRight, Share2, Loader2, Menu, Settings, Trash2, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import { useUser, UserButton } from '@clerk/react';
+import { useUser, UserButton, useClerk } from '@clerk/react';
 import { useSyncContext } from '../../../hooks/useSyncEngine';
 import { useAppStore } from '../../../store';
 import { Modal } from '../../../components/ui/Modal';
@@ -114,6 +114,7 @@ export const Dashboard: React.FC = () => {
   const db = useDatabase();
   const navigate = useNavigate();
   const { user } = useUser();
+  const { signOut } = useClerk();
   const { joinRemoteBoard } = useSyncContext();
   const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
   
@@ -220,8 +221,16 @@ export const Dashboard: React.FC = () => {
           <button 
             onClick={() => setIsSettingsOpen(true)}
             className="p-2 text-text-secondary hover:text-accent rounded-full hover:bg-accent/10 transition-colors"
+            title="Settings"
           >
             <Settings className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={() => signOut()}
+            className="p-2 text-text-secondary hover:text-red-400 rounded-full hover:bg-red-500/10 transition-colors"
+            title="Log Out"
+          >
+            <LogOut className="w-5 h-5" />
           </button>
         </div>
       </div>

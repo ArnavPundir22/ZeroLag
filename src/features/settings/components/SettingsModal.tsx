@@ -6,10 +6,9 @@ import { Moon, Sun, Monitor, Download, RefreshCw, Wifi, WifiOff, Bell, BellOff }
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  deferredPrompt: any;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, deferredPrompt }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const theme = useAppStore(state => state.theme);
   const setTheme = useAppStore(state => state.setTheme);
   const isOffline = useAppStore(state => state.isOffline);
@@ -17,6 +16,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, d
   const status = useAppStore(state => state.syncStatus);
   const notificationsEnabled = useAppStore(state => state.notificationsEnabled);
   const setNotificationsEnabled = useAppStore(state => state.setNotificationsEnabled);
+  const deferredPrompt = useAppStore(state => state.deferredPrompt);
 
   const handleInstallPwa = async () => {
     if (deferredPrompt) {

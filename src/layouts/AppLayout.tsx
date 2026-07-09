@@ -16,6 +16,7 @@ export const AppLayout = () => {
   const setTheme = useAppStore(state => state.setTheme);
   const globalToastMessage = useAppStore(state => state.globalToastMessage);
   const setGlobalToastMessage = useAppStore(state => state.setGlobalToastMessage);
+  const setDeferredPrompt = useAppStore(state => state.setDeferredPrompt);
 
   // Global Keyboard Shortcuts
   useHotkeys('mod+k', (e) => {
@@ -49,6 +50,15 @@ export const AppLayout = () => {
       return () => clearTimeout(timer);
     }
   }, [globalToastMessage, setGlobalToastMessage]);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, [setDeferredPrompt]);
 
   return (
     <SyncProvider>

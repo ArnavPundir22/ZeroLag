@@ -8,7 +8,7 @@ import { UserButton, useUser } from '@clerk/react';
 import { useSyncContext } from '../../hooks/useSyncEngine';
 import { Modal } from '../ui/Modal';
 import { SettingsModal } from '../../features/settings/components/SettingsModal';
-import { Settings, Database, Sparkles, Loader2 } from 'lucide-react';
+import { Settings, Database, Sparkles, Loader2, Download } from 'lucide-react';
 import { importTimetable, importDynamicTimetable } from '../../utils/importTimetable';
 import { parseTimetableImage } from '../../utils/aiTimetableParser';
 
@@ -19,6 +19,17 @@ export const Sidebar: React.FC = () => {
   const setIsSearchOpen = useAppStore(state => state.setIsSearchOpen);
   const isSidebarOpen = useAppStore(state => state.isSidebarOpen);
   const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
+  const deferredPrompt = useAppStore(state => state.deferredPrompt);
+
+  const handleInstallPwa = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
+      if (choiceResult.outcome === 'accepted') {
+        // App installed
+      }
+    }
+  };
 
   const db = useDatabase();
   const [boards, setBoards] = useState<any[]>([]);
@@ -322,6 +333,15 @@ export const Sidebar: React.FC = () => {
                 <Settings className="w-4 h-4" />
                 Settings & Preferences
               </button>
+              {deferredPrompt && (
+                <button onClick={handleInstallPwa} className="w-full flex items-center justify-between gap-3 px-3 py-3 sm:py-2 text-text-secondary hover:bg-accent/10 hover:text-accent rounded-lg font-medium text-sm transition-colors group">
+                  <div className="flex items-center gap-3">
+                    <Download className="w-4 h-4" />
+                    Install App
+                  </div>
+                  <span className="text-[9px] uppercase tracking-wider bg-accent/20 text-accent px-1.5 py-0.5 rounded-full shrink-0">PWA</span>
+                </button>
+              )}
             </div>
           </div>
         </nav>
@@ -391,7 +411,6 @@ export const Sidebar: React.FC = () => {
       <SettingsModal 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
-        deferredPrompt={null} 
       />
     </>
   );

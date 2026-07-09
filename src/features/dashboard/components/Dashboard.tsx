@@ -125,17 +125,7 @@ export const Dashboard: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [deleteModalState, setDeleteModalState] = useState<{ isOpen: boolean, targetId: string | null }>({ isOpen: false, targetId: null });
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  }, []);
 
   useEffect(() => {
     if (!db) return;
@@ -317,7 +307,6 @@ export const Dashboard: React.FC = () => {
       <SettingsModal 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
-        deferredPrompt={deferredPrompt} 
       />
     </div>
   );

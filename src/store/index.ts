@@ -24,6 +24,8 @@ interface AppState {
   setNotificationsEnabled: (enabled: boolean) => void;
   globalToastMessage: string | null;
   setGlobalToastMessage: (msg: string | null) => void;
+  deferredPrompt: any | null;
+  setDeferredPrompt: (prompt: any | null) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -51,6 +53,8 @@ export const useAppStore = create<AppState>()(
       setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
       globalToastMessage: null,
       setGlobalToastMessage: (msg) => set({ globalToastMessage: msg }),
+      deferredPrompt: null,
+      setDeferredPrompt: (prompt) => set({ deferredPrompt: prompt }),
     }),
     {
       name: 'zerolag-store',

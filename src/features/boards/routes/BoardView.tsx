@@ -41,7 +41,6 @@ export const BoardView = () => {
   const db = useDatabase();
   const [boardTitle, setBoardTitle] = useState('Board');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [contributors, setContributors] = useState<string[]>([]);
 
   const { onlineUsers } = useMultiplayer();
 
@@ -68,23 +67,6 @@ export const BoardView = () => {
     return () => sub.unsubscribe();
   }, [db]);
 
-  // Fetch contributors based on operations payload
-  useEffect(() => {
-    if (!db || !currentBoardId) return;
-    const sub = db.operations.find({ selector: { boardId: currentBoardId } }).$.subscribe((ops: any[]) => {
-      const names = new Set<string>();
-      ops.forEach((op: any) => {
-        try {
-          const payload = typeof op.payload === 'string' ? JSON.parse(op.payload) : op.payload;
-          if (payload && payload._authorName) {
-            names.add(payload._authorName);
-          }
-        } catch (e) {}
-      });
-      setContributors(Array.from(names));
-    });
-    return () => sub.unsubscribe();
-  }, [db, currentBoardId]);
 
   const togglePriorityFilter = (priority: string) => {
     if (filterPriorities.includes(priority)) {
@@ -147,11 +129,6 @@ export const BoardView = () => {
             <h2 className="font-medium text-text-primary truncate max-w-[90px] sm:max-w-[200px] md:max-w-xs leading-none">
               {boardTitle}
             </h2>
-            {contributors.length >= 0 && (
-              <span className="text-[10px] text-text-secondary mt-0.5 truncate hidden sm:block max-w-[200px] hover:text-white cursor-pointer transition-colors" title="Contributors">
-                {Math.max(1, contributors.length)} {Math.max(1, contributors.length) === 1 ? 'contributor' : 'contributors'}
-              </span>
-            )}
           </div>
           
           <div className="hidden sm:block h-4 w-px bg-border mx-2" />

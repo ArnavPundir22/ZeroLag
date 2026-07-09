@@ -117,51 +117,20 @@ export const BoardView = () => {
   const handleMeetClick = () => {
     if (!currentBoardId) return;
     
-    // Connect directly to the deterministic meeting room
-    // The deployed server needs the update for this to work perfectly,
-    // but locally it will force-create the room if it doesn't exist,
-    // or join it if it does.
-    const form = document.createElement('form');
-    form.method = 'POST';
-    // If the user deploys the updated BaatChit, this URL will work perfectly:
-    // form.action = 'https://baatcheet-88e9.onrender.com/';
-    // For local testing of the modified BaatChit:
-    form.action = 'http://localhost:5000/'; 
-    // Wait, the prompt says "url of a aurameet room - https://baatcheet-88e9.onrender.com/..." 
-    // I should point it back to their Render deploy, but with a note, 
-    // or just point it to Render, assuming they will deploy it soon.
-    form.action = 'https://baatcheet-88e9.onrender.com/';
-    form.target = '_blank';
+    // Connect to the deterministic meeting room using a GET request for PWA compatibility
+    // The deployed server needs the updated /meet endpoint for this to work perfectly.
+    const baseUrl = 'https://baatcheet-88e9.onrender.com/meet';
+    const roomCode = currentBoardId.substring(0, 6).toUpperCase();
+    const username = user?.fullName || user?.firstName || 'ZeroLag User';
     
-    const actionInput = document.createElement('input');
-    actionInput.type = 'hidden';
-    actionInput.name = 'action';
-    actionInput.value = 'create';
+    const params = new URLSearchParams({
+      action: 'create',
+      room_code: roomCode,
+      room_name: boardTitle,
+      username: username
+    });
     
-    const roomCodeInput = document.createElement('input');
-    roomCodeInput.type = 'hidden';
-    roomCodeInput.name = 'room_code';
-    // Use first 6 chars of boardId for a clean, deterministic code
-    roomCodeInput.value = currentBoardId.substring(0, 6).toUpperCase();
-    
-    const roomNameInput = document.createElement('input');
-    roomNameInput.type = 'hidden';
-    roomNameInput.name = 'room_name';
-    roomNameInput.value = boardTitle;
-    
-    const usernameInput = document.createElement('input');
-    usernameInput.type = 'hidden';
-    usernameInput.name = 'username';
-    usernameInput.value = user?.fullName || user?.firstName || 'ZeroLag User';
-    
-    form.appendChild(actionInput);
-    form.appendChild(roomCodeInput);
-    form.appendChild(roomNameInput);
-    form.appendChild(usernameInput);
-    
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
+    window.open(`${baseUrl}?${params.toString()}`, '_blank');
   };
 
   return (

@@ -108,6 +108,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!db || !user?.id || !session) return;
 
     let mounted = true;
+    let pollInterval: any;
 
     const initSupabase = async () => {
       try {
@@ -194,7 +195,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
 
         // Poll every 30 seconds as a fallback for dropped websocket connections
-        const pollInterval = setInterval(fetchMissed, 30000);
+        pollInterval = setInterval(fetchMissed, 30000);
 
         if (!isOffline) {
           syncOperations();
@@ -258,11 +259,10 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false;
+      if (pollInterval) clearInterval(pollInterval);
       if (channelRef.current && supabaseRef.current) {
         supabaseRef.current.removeChannel(channelRef.current);
       }
-      // clearInterval(pollInterval) is not easily accessible here without a ref, 
-      // but since we only run initSupabase once, it's okay for now.
     };
   }, [isOffline, db, user?.id, session]);
 

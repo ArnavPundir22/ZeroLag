@@ -4,14 +4,17 @@ import { useAppStore } from '../../../store';
 import { useUser } from '@clerk/react';
 import { Send } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import { useSyncContext } from '../../../hooks/useSyncEngine';
 
 export const ProjectChat = () => {
   const { user } = useUser();
   const db = useDatabase();
   const currentBoardId = useAppStore(state => state.currentBoardId);
+  const { supabaseClient } = useSyncContext();
   const [messages, setMessages] = useState<any[]>([]);
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const channelRef = useRef<any>(null);
   
   useEffect(() => {
     if (!db || !currentBoardId) return;
@@ -27,6 +30,37 @@ export const ProjectChat = () => {
 
     return () => sub.unsubscribe();
   }, [db, currentBoardId]);
+
+  // Set up Supabase Broadcast for instant, zero-latency chat
+  useEffect(() => {
+    if (!supabaseClient || !currentBoardId || !db) return;
+
+    const channel = supabaseClient.channel(`chat:board:${currentBoardId}`);
+    
+    channel
+      .on('broadcast', { event: 'new-message' }, async ({ payload }) => {
+        try {
+          // Temporarily disable remote sync interceptor to prevent echo
+          (window as any).__isRemoteSync = true;
+          const doc = await db.chatMessages.findOne({ selector: { id: payload.id } }).exec();
+          if (!doc) {
+             await db.chatMessages.insert(payload);
+          }
+        } catch (err) {
+          console.warn('Broadcast message insert ignored:', err);
+        } finally {
+          (window as any).__isRemoteSync = false;
+        }
+      })
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      supabaseClient.removeChannel(channel);
+      channelRef.current = null;
+    };
+  }, [supabaseClient, currentBoardId, db]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -48,7 +82,18 @@ export const ProjectChat = () => {
     };
 
     try {
+      // 1. Insert locally for persistence (triggers standard sync operations)
       await db.chatMessages.insert(newMsg);
+      
+      // 2. Broadcast instantly for zero-latency delivery to peers
+      if (channelRef.current) {
+        channelRef.current.send({
+          type: 'broadcast',
+          event: 'new-message',
+          payload: newMsg
+        });
+      }
+      
       setInputText('');
     } catch (error) {
       console.error('Failed to send message:', error);

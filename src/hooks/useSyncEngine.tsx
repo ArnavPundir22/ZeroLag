@@ -309,11 +309,21 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error('[SYNC] Failed to insert operations to Supabase:', insertError);
           console.error('[SYNC] Payload that failed:', JSON.stringify(newOps, null, 2));
           
-          // If it's a permanent error like RLS (42501) or other DB errors, mark as FAILED to prevent queue blocking
-          // Network errors are thrown, so insertError here is a Supabase API/DB error
-          for (const op of newOps) {
-            const doc = await db.operations.findOne({ selector: { id: op.id } }).exec();
-            if (doc) await doc.patch({ status: 'FAILED' });
+          // Identify permanent vs transient errors
+          // e.g. 42501 (RLS), 23... (Constraint violations), 22... (Data exceptions)
+          const errorCode = String(insertError?.code || '');
+          const isPermanentError = errorCode.startsWith('42') || errorCode.startsWith('23') || errorCode.startsWith('22');
+          
+          if (isPermanentError) {
+            for (const op of newOps) {
+              const doc = await db.operations.findOne({ selector: { id: op.id } }).exec();
+              if (doc) await doc.patch({ status: 'FAILED' });
+            }
+          } else {
+            // Transient error: keep PENDING and retry after 5 seconds
+            console.log('[SYNC] Transient error, scheduling retry...');
+            if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+            syncTimeoutRef.current = setTimeout(syncOperations, 5000);
           }
           
           setSyncStatus('error');
@@ -350,6 +360,9 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err: any) {
       console.error('[SYNC] Sync error:', err);
       setSyncStatus('error');
+      // Schedule retry for uncaught network errors
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = setTimeout(syncOperations, 5000);
     } finally {
       isSyncingRef.current = false;
     }

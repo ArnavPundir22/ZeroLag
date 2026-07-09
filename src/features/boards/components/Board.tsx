@@ -193,6 +193,14 @@ export const Board: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to save drag and drop changes:', err);
+      useAppStore.getState().setGlobalToastMessage('Failed to save order. Reverting...');
+      
+      // Revert optimistic UI state from DB
+      const actualTasks = await db.tasks.find({ sort: [{ position: 'asc' }] }).exec();
+      setTasks(actualTasks.map((t: any) => t.toJSON()));
+      
+      const actualCols = await db.columns.find({ selector: { boardId: currentBoardId }, sort: [{ position: 'asc' }] }).exec();
+      setColumns(actualCols.map((c: any) => c.toJSON()));
     }
   };
 

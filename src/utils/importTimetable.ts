@@ -4,7 +4,7 @@ import { useAppStore } from '../store';
 
 export const importTimetable = async (userId: string) => {
   if (!userId) {
-    alert("Please log in to create a timetable.");
+    useAppStore.getState().setGlobalToastMessage("Please log in to create a timetable.");
     return;
   }
 
@@ -41,14 +41,14 @@ export const importTimetable = async (userId: string) => {
     return true;
   } catch (error) {
     console.error("Failed to create timetable:", error);
-    alert("Failed to create timetable. See console for details.");
+    useAppStore.getState().setGlobalToastMessage("Failed to create timetable. See console for details.");
     return false;
   }
 };
 
 export const importDynamicTimetable = async (userId: string, timetableData: any[]) => {
   if (!userId) {
-    alert("Please log in to import a timetable.");
+    useAppStore.getState().setGlobalToastMessage("Please log in to import a timetable.");
     return false;
   }
 
@@ -101,7 +101,7 @@ export const importDynamicTimetable = async (userId: string, timetableData: any[
     return true;
   } catch (error) {
     console.error("Failed to import dynamic timetable:", error);
-    alert("Failed to create AI timetable. See console for details.");
+    useAppStore.getState().setGlobalToastMessage("Failed to create AI timetable. See console for details.");
     return false;
   }
 };

@@ -8,7 +8,7 @@ import { UserButton, useUser } from '@clerk/react';
 import { useSyncContext } from '../../hooks/useSyncEngine';
 import { Modal } from '../ui/Modal';
 import { SettingsModal } from '../../features/settings/components/SettingsModal';
-import { Settings, Database, Sparkles, Loader2, Download } from 'lucide-react';
+import { Settings, Database, Sparkles, Loader2, Download, Info, HelpCircle, ShieldCheck } from 'lucide-react';
 import { importTimetable, importDynamicTimetable } from '../../utils/importTimetable';
 import { parseTimetableImage } from '../../utils/aiTimetableParser';
 
@@ -343,6 +343,24 @@ export const Sidebar: React.FC = () => {
                   <span className="text-[9px] uppercase tracking-wider bg-accent/20 text-accent px-1.5 py-0.5 rounded-full shrink-0">PWA</span>
                 </button>
               )}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-text-secondary text-xs font-medium px-3 mb-2 uppercase tracking-wider">About</div>
+            <div className="space-y-0.5">
+              <Link to="/about" className={`w-full flex items-center gap-3 px-3 py-3 sm:py-2 rounded-lg font-medium text-sm transition-colors ${location.pathname === '/about' ? 'bg-surface-hover text-text-primary' : 'text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary'}`}>
+                <Info className="w-4 h-4" />
+                About
+              </Link>
+              <Link to="/faq" className={`w-full flex items-center gap-3 px-3 py-3 sm:py-2 rounded-lg font-medium text-sm transition-colors ${location.pathname === '/faq' ? 'bg-surface-hover text-text-primary' : 'text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary'}`}>
+                <HelpCircle className="w-4 h-4" />
+                FAQ
+              </Link>
+              <Link to="/terms" className={`w-full flex items-center gap-3 px-3 py-3 sm:py-2 rounded-lg font-medium text-sm transition-colors ${location.pathname === '/terms' ? 'bg-surface-hover text-text-primary' : 'text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary'}`}>
+                <ShieldCheck className="w-4 h-4" />
+                Terms & Conditions
+              </Link>
             </div>
           </div>
         </nav>

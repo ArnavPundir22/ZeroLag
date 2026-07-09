@@ -39,12 +39,13 @@ No loading spinners. No network dependency. Just pure, instant task management.
 
 - **⚡ Zero Latency UI:** All data is read from and written to a local IndexedDB via RxDB, ensuring instant UI updates regardless of internet speed.
 - **🔄 Offline-First Sync Engine:** Event-sourced operation logging that batches and syncs mutations gracefully in the background the moment you reconnect.
-- **🤝 Real-Time Collaboration:** Powered by Supabase Realtime WebSockets to instantly broadcast changes to all active clients.
+- **🤝 Real-Time Collaboration & Presence:** Powered by Supabase Realtime WebSockets to instantly broadcast changes and display live collaborator avatars and cursors.
 - **🖐️ Optimized Drag & Drop:** Complex, nested drag-and-drop mechanics tailored for both desktop mice and mobile touch screens using `@dnd-kit`.
 - **✨ AI Magic Import:** Utilize the Gemini Vision API to instantly parse images of physical whiteboards or written timetables into digital tasks.
-- **📱 Progressive Web App (PWA):** Fully installable mobile app experience. Works offline, launches in full-screen standalone mode without a browser bar.
-- **🎨 Glassmorphic Aesthetic:** A premium, modern UI built with Tailwind CSS, featuring rich dark-mode interfaces and fluid animations.
-- **🚀 Production-Ready Architecture:** Clean Feature-Sliced Design folder structure, Edge authentication with Clerk, strict Row-Level Security (RLS) policies, and highly optimized reactive subscriptions.
+- **🎥 1-Click Aurameet Video Conferencing:** Seamlessly launch ephemeral, zero-log video meeting rooms directly from your project board, fully optimized for PWAs.
+- **📱 Progressive Web App (PWA):** Fully installable mobile app experience. Works offline, launches in full-screen standalone mode, and handles deep links perfectly.
+- **🎨 Premium Mesh-Gradient Glassmorphism:** A high-end, modern UI built with Tailwind CSS, featuring rich dark-mode interfaces, fluid animations, and stunning project cards.
+- **🚀 Production-Ready FSD Architecture:** Clean Feature-Sliced Design (FSD) modular architecture, Edge authentication with Clerk, strict Row-Level Security (RLS) policies, and highly optimized reactive subscriptions.
 
 ---
 
@@ -73,6 +74,7 @@ Dive into the technical mechanics, including:
 - **[Sync Engine Architecture](docs/3-engineering/sync-engine.md):** The event-sourced operational logic and debounce queues.
 - **[Feature Technical Logic (FTL)](docs/3-engineering/FTL.md):** Detailed algorithms for core feature delivery.
 - **[AI Magic Import Flow](docs/3-engineering/ai-magic-import.md):** Generative AI parsing pipelines.
+- **[Aurameet Integration](docs/3-engineering/aurameet-integration.md):** PWA-compatible, deterministic 1-click ephemeral video conferencing.
 
 ### 3. [🚀 Deployment & Setup Guide](docs/4-operations/SETUP.md)
 Learn how to run ZeroLag, including:

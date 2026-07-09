@@ -20,6 +20,7 @@ This documentation is logically grouped into domains. Select a sub-document belo
 - [Feature Technical Logic (FTL)](./3-engineering/FTL.md)
 - [Sync Engine Architecture](./3-engineering/sync-engine.md)
 - [AI Magic Import Flow](./3-engineering/ai-magic-import.md)
+- [Aurameet PWA Integration](./3-engineering/aurameet-integration.md)
 
 ## 4. Operations
 *Setup, deployment, and infrastructure guidelines.*

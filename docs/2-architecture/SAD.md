@@ -60,6 +60,7 @@ graph TD
 ### 4.1 Client-Side Application (PWA)
 - **Environment**: Web Browser (V8/WebKit).
 - **Core Framework**: React (Vite) as a Single Page Application (SPA).
+- **Architecture**: Organized using **Feature-Sliced Design (FSD)** methodology. The codebase is heavily modularized (e.g., `src/features/boards/`, `src/features/auth/`), ensuring clear boundaries between UI components, business logic, and routing. Shared layers live in `src/db/` and `src/hooks/`.
 - **Local Storage**: IndexedDB is used for structured persistent storage, wrapped by `RxDB` (Reactive Database) which provides observables for UI reactivity. `localStorage` is used for ephemeral UI preferences and the sync engine's ledger (`zerolag_local_ops`).
 
 ### 4.2 Authentication Layer (Clerk)

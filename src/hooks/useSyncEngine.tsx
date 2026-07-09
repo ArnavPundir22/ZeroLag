@@ -40,6 +40,7 @@ const playNotificationSound = () => {
 interface SyncContextType {
   isOffline: boolean;
   joinRemoteBoard: (boardId: string) => Promise<boolean>;
+  supabaseClient: SupabaseClient | null;
 }
 
 const SyncContext = createContext<SyncContextType | null>(null);
@@ -417,7 +418,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <SyncContext.Provider value={{ isOffline, joinRemoteBoard }}>
+    <SyncContext.Provider value={{ isOffline, joinRemoteBoard, supabaseClient: supabaseRef.current }}>
       {children}
     </SyncContext.Provider>
   );

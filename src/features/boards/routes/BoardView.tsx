@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2, LogOut } from 'lucide-react';
+import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2, LogOut, Calendar as CalendarIcon, Layout } from 'lucide-react';
 import { useDatabase } from '../../../db/DatabaseProvider';
 import { useAppStore } from '../../../store';
 import { Board } from '../components/Board';
 import { useClerk } from '@clerk/react';
+import { useMultiplayer } from '../../../hooks/useMultiplayer';
+import { LiveCursors } from '../components/LiveCursors';
+import { CalendarView } from '../components/CalendarView';
 
 export const BoardRouteWrapper = () => {
   const { boardId } = useParams();
@@ -32,10 +35,14 @@ export const BoardView = () => {
   
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [availableLabels, setAvailableLabels] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<'board' | 'calendar'>('board');
   
   const db = useDatabase();
   const [boardTitle, setBoardTitle] = useState('Board');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [contributors, setContributors] = useState<string[]>([]);
+
+  const { onlineUsers } = useMultiplayer();
 
   useEffect(() => {
     if (!db || !currentBoardId) return;
@@ -59,6 +66,24 @@ export const BoardView = () => {
     });
     return () => sub.unsubscribe();
   }, [db]);
+
+  // Fetch contributors based on operations payload
+  useEffect(() => {
+    if (!db || !currentBoardId) return;
+    const sub = db.operations.find({ selector: { boardId: currentBoardId } }).$.subscribe((ops: any[]) => {
+      const names = new Set<string>();
+      ops.forEach((op: any) => {
+        try {
+          const payload = typeof op.payload === 'string' ? JSON.parse(op.payload) : op.payload;
+          if (payload && payload._authorName) {
+            names.add(payload._authorName);
+          }
+        } catch (e) {}
+      });
+      setContributors(Array.from(names));
+    });
+    return () => sub.unsubscribe();
+  }, [db, currentBoardId]);
 
   const togglePriorityFilter = (priority: string) => {
     if (filterPriorities.includes(priority)) {
@@ -106,7 +131,9 @@ export const BoardView = () => {
 
   return (
     <main className="flex-1 overflow-hidden flex flex-col relative min-w-0 min-h-0">
-      <header className="h-14 border-b border-border flex items-center justify-between px-3 sm:px-8 shrink-0 bg-background/80 backdrop-blur-md z-10">
+      <LiveCursors onlineUsers={onlineUsers} />
+
+      <header className="h-14 border-b border-border flex items-center justify-between px-3 sm:px-8 shrink-0 bg-background/80 backdrop-blur-md z-10 relative">
         <div className="flex items-center gap-1 sm:gap-4">
           <button 
             onClick={() => setIsSidebarOpen(true)}
@@ -115,13 +142,35 @@ export const BoardView = () => {
             <Menu className="w-5 h-5" />
           </button>
           
-          <h2 className="font-medium text-text-primary truncate max-w-[90px] sm:max-w-[200px] md:max-w-xs">
-            {boardTitle}
-          </h2>
+          <div className="flex flex-col">
+            <h2 className="font-medium text-text-primary truncate max-w-[90px] sm:max-w-[200px] md:max-w-xs leading-none">
+              {boardTitle}
+            </h2>
+            {contributors.length > 0 && (
+              <span className="text-[10px] text-text-secondary mt-0.5 truncate hidden sm:block max-w-[200px]">
+                {contributors.length} {contributors.length === 1 ? 'contributor' : 'contributors'}
+              </span>
+            )}
+          </div>
           
           <div className="hidden sm:block h-4 w-px bg-border mx-2" />
           
-          <div className="relative">
+          <div className="relative flex items-center gap-2">
+            <div className="hidden sm:flex p-1 bg-black/20 border border-white/5 rounded-lg mr-2">
+              <button
+                onClick={() => setViewMode('board')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-md transition-colors ${viewMode === 'board' ? 'bg-surface text-white shadow' : 'text-text-secondary hover:text-white'}`}
+              >
+                <Layout className="w-3.5 h-3.5" /> Board
+              </button>
+              <button
+                onClick={() => setViewMode('calendar')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-surface text-white shadow' : 'text-text-secondary hover:text-white'}`}
+              >
+                <CalendarIcon className="w-3.5 h-3.5" /> Calendar
+              </button>
+            </div>
+
             <button 
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               className={`flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 text-sm p-1.5 sm:px-3 sm:py-1.5 rounded-lg border transition-colors min-w-[32px] min-h-[32px] sm:min-h-[36px] ${(filterPriorities.length > 0 || filterLabels.length > 0) ? 'bg-accent/10 border-accent text-accent' : 'border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover'}`}
@@ -172,7 +221,36 @@ export const BoardView = () => {
           </div>
         </div>
         
-        <div className="flex items-center gap-1 sm:gap-4 text-sm">
+        <div className="flex items-center gap-1 sm:gap-4 text-sm relative">
+          
+          {/* Avatar bubbles for online users */}
+          {Object.values(onlineUsers).length > 0 && (
+            <div className="hidden md:flex items-center -space-x-2 mr-2">
+              {Object.values(onlineUsers).slice(0, 5).map(u => (
+                <div 
+                  key={u.id} 
+                  title={u.name}
+                  className="w-8 h-8 rounded-full border-2 border-surface flex items-center justify-center text-xs font-bold text-white shadow-md relative group z-20"
+                  style={{ backgroundColor: u.color }}
+                >
+                  {u.avatarUrl ? (
+                    <img src={u.avatarUrl} alt={u.name} className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    u.name.substring(0, 2).toUpperCase()
+                  )}
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-[10px] bg-black/80 text-white rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">
+                    {u.name}
+                  </span>
+                </div>
+              ))}
+              {Object.values(onlineUsers).length > 5 && (
+                <div className="w-8 h-8 rounded-full border-2 border-surface bg-surface-hover flex items-center justify-center text-[10px] font-bold text-text-secondary z-10">
+                  +{Object.values(onlineUsers).length - 5}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className={`flex items-center justify-center sm:justify-start gap-2 p-1.5 sm:px-3 sm:py-1.5 min-w-[32px] sm:min-w-[auto] min-h-[32px] sm:min-h-[36px] rounded-full border transition-colors ${
             isOffline 
               ? 'border-orange-500/30 text-orange-400 bg-orange-500/10' 
@@ -208,7 +286,7 @@ export const BoardView = () => {
           </div>
           <button
             onClick={() => window.location.reload()}
-            className="flex items-center justify-center min-w-[32px] sm:min-w-[36px] min-h-[32px] sm:min-h-[36px] gap-2 p-1.5 sm:px-3 rounded-lg border border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
+            className="hidden sm:flex items-center justify-center min-w-[32px] sm:min-w-[36px] min-h-[32px] sm:min-h-[36px] gap-2 p-1.5 sm:px-3 rounded-lg border border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
             title="Refresh App"
           >
             <RefreshCw className="w-4 h-4" />
@@ -233,7 +311,7 @@ export const BoardView = () => {
         </div>
       </header>
 
-      <Board />
+      {viewMode === 'board' ? <Board /> : <CalendarView />}
 
       {toastMessage && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-surface border border-border shadow-xl rounded-lg px-4 py-3 z-50 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">

@@ -41,6 +41,9 @@ export const BoardView = () => {
   const db = useDatabase();
   const [boardTitle, setBoardTitle] = useState('Board');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [tempTitle, setTempTitle] = useState('');
 
   const { onlineUsers } = useMultiplayer();
 
@@ -114,6 +117,29 @@ export const BoardView = () => {
     }
   };
 
+  const handleRenameSubmit = async () => {
+    if (!db || !currentBoardId || !tempTitle.trim() || tempTitle.trim() === boardTitle) {
+      setIsEditingTitle(false);
+      return;
+    }
+    try {
+      const doc = await db.boards.findOne({ selector: { id: currentBoardId } }).exec();
+      if (doc) {
+        await doc.patch({ 
+          title: tempTitle.trim(),
+          updatedAt: new Date().toISOString()
+        });
+        setToastMessage('Project renamed');
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    } catch (error) {
+      console.error('Failed to rename board', error);
+      setToastMessage('Failed to rename project');
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+    setIsEditingTitle(false);
+  };
+
   const handleMeetClick = () => {
     if (!currentBoardId) return;
     
@@ -148,9 +174,31 @@ export const BoardView = () => {
               <Menu className="w-5 h-5" />
             </button>
             
-            <h2 className="font-medium text-text-primary truncate max-w-[120px] sm:max-w-[200px] md:max-w-xs leading-none">
-              {boardTitle}
-            </h2>
+            {isEditingTitle ? (
+              <input
+                type="text"
+                value={tempTitle}
+                onChange={(e) => setTempTitle(e.target.value)}
+                onBlur={handleRenameSubmit}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleRenameSubmit();
+                  if (e.key === 'Escape') setIsEditingTitle(false);
+                }}
+                autoFocus
+                className="font-medium text-text-primary bg-background border border-accent rounded px-2 py-0.5 max-w-[120px] sm:max-w-[200px] md:max-w-xs leading-none outline-none focus:ring-2 focus:ring-accent/50"
+              />
+            ) : (
+              <h2 
+                onClick={() => {
+                  setTempTitle(boardTitle);
+                  setIsEditingTitle(true);
+                }}
+                title="Click to rename"
+                className="font-medium text-text-primary truncate max-w-[120px] sm:max-w-[200px] md:max-w-xs leading-none cursor-pointer hover:bg-surface-hover hover:ring-1 hover:ring-border px-2 py-1 rounded transition-all"
+              >
+                {boardTitle}
+              </h2>
+            )}
 
             <div className="hidden sm:block h-4 w-px bg-border mx-2" />
 

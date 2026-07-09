@@ -21,10 +21,9 @@ export const Board: React.FC = () => {
     if (!currentBoardId || !db) return;
 
     const colSub = db.columns.find({
-      selector: { boardId: currentBoardId },
-      sort: [{ position: 'asc' }]
+      selector: { boardId: currentBoardId }
     }).$.subscribe((cols: any[]) => {
-      const loadedCols = cols.map((c: any) => c.toJSON());
+      const loadedCols = cols.map((c: any) => c.toJSON()).sort((a: any, b: any) => a.position - b.position);
       
       // Auto-fix day sorting if they got shuffled
       const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -48,12 +47,11 @@ export const Board: React.FC = () => {
       setColumns(loadedCols);
     });
 
-    const taskSub = db.tasks.find({
-      sort: [{ position: 'asc' }]
-    }).$.subscribe((tsks: any[]) => {
+    const taskSub = db.tasks.find().$.subscribe((tsks: any[]) => {
       // Filter tasks by columns in this board manually for simplicity,
       // or we can just fetch all tasks. In a real app we'd query by columnIds.
-      setTasks(tsks.map((t: any) => t.toJSON()));
+      const loadedTasks = tsks.map((t: any) => t.toJSON()).sort((a: any, b: any) => a.position - b.position);
+      setTasks(loadedTasks);
     });
 
     return () => {

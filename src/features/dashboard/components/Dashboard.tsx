@@ -130,8 +130,14 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (!db) return;
-    const sub = db.boards.find({ sort: [{ updatedAt: 'desc' }] }).$.subscribe((docs: any[]) => {
-      setBoards(docs.map((d: any) => d.toJSON()));
+    const sub = db.boards.find().$.subscribe((docs: any[]) => {
+      const allBoards = docs.map((d: any) => d.toJSON());
+      allBoards.sort((a, b) => {
+        const dateA = new Date(a.updatedAt || 0).getTime();
+        const dateB = new Date(b.updatedAt || 0).getTime();
+        return dateB - dateA;
+      });
+      setBoards(allBoards);
     });
     return () => sub.unsubscribe();
   }, [db]);

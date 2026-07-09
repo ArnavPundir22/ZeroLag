@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { DndContext, DragOverlay, closestCorners, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
+import { arrayMove, SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { Column } from './Column';
 import { Task } from './Task';
 import { useDatabase } from '../db/DatabaseProvider';
@@ -24,7 +24,28 @@ export const Board: React.FC = () => {
       selector: { boardId: currentBoardId },
       sort: [{ position: 'asc' }]
     }).$.subscribe((cols: any[]) => {
-      setColumns(cols.map((c: any) => c.toJSON()));
+      const loadedCols = cols.map((c: any) => c.toJSON());
+      
+      // Auto-fix day sorting if they got shuffled
+      const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const isDayBoard = loadedCols.length > 0 && loadedCols.every(c => DAYS_OF_WEEK.includes(c.title));
+      
+      if (isDayBoard) {
+        const sortedCols = [...loadedCols].sort((a, b) => DAYS_OF_WEEK.indexOf(a.title) - DAYS_OF_WEEK.indexOf(b.title));
+        const isOutOfOrder = loadedCols.some((col, idx) => col.id !== sortedCols[idx].id);
+        
+        if (isOutOfOrder) {
+          // Fix positions in DB silently
+          sortedCols.forEach(async (col, idx) => {
+            const doc = await db.columns.findOne({ selector: { id: col.id } }).exec();
+            if (doc && doc.position !== idx) {
+              await doc.patch({ position: idx });
+            }
+          });
+        }
+      }
+      
+      setColumns(loadedCols);
     });
 
     const taskSub = db.tasks.find({
@@ -195,7 +216,7 @@ export const Board: React.FC = () => {
     >
       <div className="flex-1 w-full h-full overflow-hidden min-h-0">
         <div className="h-full w-full flex flex-col md:flex-row gap-4 sm:gap-6 px-4 sm:px-8 py-4 sm:py-8 overflow-y-auto md:overflow-x-auto md:overflow-y-hidden custom-scrollbar items-stretch">
-          <SortableContext items={columns.map(c => c.id)} strategy={horizontalListSortingStrategy}>
+          <SortableContext items={columns.map(c => c.id)} strategy={rectSortingStrategy}>
             {columns.map(col => (
               <Column
                 key={col.id}

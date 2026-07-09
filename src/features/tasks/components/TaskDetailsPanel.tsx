@@ -137,8 +137,8 @@ export const TaskDetailsPanel: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file || !task || !db) return;
 
-    if (file.size > 50 * 1024 * 1024) {
-      alert('File is too large. Maximum size is 50MB.');
+    if (file.size > 200 * 1024 * 1024) {
+      alert('File is too large. Maximum size is 200MB.');
       return;
     }
 
@@ -464,7 +464,7 @@ export const TaskDetailsPanel: React.FC = () => {
                           <div className="flex flex-col items-center justify-center p-6 border border-dashed border-white/10 rounded-xl bg-black/10">
                             <Paperclip className="w-6 h-6 text-text-secondary/50 mb-2" />
                             <span className="text-sm font-medium text-text-secondary">No attachments yet.</span>
-                            <span className="text-xs text-text-secondary/50 mt-1">Upload a file up to 50MB.</span>
+                            <span className="text-xs text-text-secondary/50 mt-1">Upload a file up to 200MB.</span>
                           </div>
                         ) : (
                           <div className="space-y-2">

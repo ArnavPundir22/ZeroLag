@@ -303,7 +303,7 @@ export const BoardView = () => {
           </div>
           <button
             onClick={() => window.location.reload()}
-            className="hidden sm:flex items-center justify-center min-w-[32px] sm:min-w-[36px] min-h-[32px] sm:min-h-[36px] gap-2 p-1.5 sm:px-3 rounded-lg border border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
+            className="flex items-center justify-center min-w-[32px] sm:min-w-[36px] min-h-[32px] sm:min-h-[36px] gap-2 p-1.5 sm:px-3 rounded-lg border border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
             title="Refresh App"
           >
             <RefreshCw className="w-4 h-4" />

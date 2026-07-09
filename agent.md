@@ -47,6 +47,7 @@ The project follows a modular, feature-sliced design pattern located in `/src`:
 - **Read/Write Flow:** Component UI -> Zustand/Local DB -> UI Updates instantly -> Background Sync to Supabase.
 
 ### Code Hygiene
+- **Optimized & Concise Code:** Do not write useless or extra code. Always strive for the most optimal, concise, and direct approach to solve a problem without over-engineering or long-winded solutions.
 - Do not remove existing comments unless explicitly requested.
 - Remove unnecessary `console.log` statements before committing code.
 - Ensure proper error handling, especially for network/sync operations, failing gracefully without disrupting the user experience.

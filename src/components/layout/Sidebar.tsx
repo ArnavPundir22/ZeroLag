@@ -235,7 +235,7 @@ export const Sidebar: React.FC = () => {
           </div>
         )}
         
-        <nav className="flex-1 p-4 space-y-6">
+        <nav className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6 pb-24">
           <div>
             <Link 
               to="/" 

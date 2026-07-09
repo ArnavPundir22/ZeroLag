@@ -7,12 +7,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { v4 as uuidv4 } from 'uuid';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useUser } from '@clerk/react';
 
 export const TaskDetailsPanel: React.FC = () => {
   const selectedTaskId = useAppStore(state => state.selectedTaskId);
   const setSelectedTaskId = useAppStore(state => state.setSelectedTaskId);
   const currentBoardId = useAppStore(state => state.currentBoardId);
   const db = useDatabase();
+  const { user } = useUser();
+  const currentUserName = user?.fullName || user?.firstName || user?.primaryEmailAddress?.emailAddress || 'Anonymous';
   
   const [task, setTask] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
@@ -72,7 +75,7 @@ export const TaskDetailsPanel: React.FC = () => {
         id: uuidv4(),
         taskId: task.id,
         text: newComment.trim(),
-        author: 'You',
+        author: currentUserName,
         createdAt: new Date().toISOString(),
         version: 1,
         deviceId: 'local'
@@ -507,7 +510,7 @@ export const TaskDetailsPanel: React.FC = () => {
                     <div className="h-full flex flex-col p-6">
                       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6 mb-4">
                         {comments.map(comment => {
-                          const isYou = comment.author === 'You';
+                          const isYou = comment.author === 'You' || comment.author === currentUserName;
                           return (
                             <div key={comment.id} className={`flex gap-3 items-end ${isYou ? 'flex-row-reverse' : ''}`}>
                               {!isYou && (

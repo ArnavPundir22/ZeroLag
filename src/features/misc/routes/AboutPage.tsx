@@ -1,5 +1,5 @@
 import React from 'react';
-import { Info } from 'lucide-react';
+import { Info, Github, ExternalLink } from 'lucide-react';
 
 export const AboutPage: React.FC = () => {
   return (
@@ -30,6 +30,33 @@ export const AboutPage: React.FC = () => {
           <p>
             You can find more of my work on my <a href="https://github.com/ArnavPundir22" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">GitHub</a> or visit my <a href="https://arnavpundir22.github.io" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Portfolio</a>.
           </p>
+
+          <div className="mt-12 bg-surface border border-border rounded-xl p-6 relative overflow-hidden group hover:border-accent/50 transition-colors">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-accent/10 transition-colors" />
+            
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div>
+                <h3 className="text-lg font-semibold text-text-primary mb-2 flex items-center gap-2">
+                  <Github className="w-5 h-5 text-accent" />
+                  Architecture & Source Code
+                </h3>
+                <p className="text-sm text-text-secondary max-w-lg">
+                  Curious about how ZeroLag achieves lightning-fast local-first sync, optimistic UI updates, and real-time collaboration? 
+                  Read our full Technical Architecture Document on GitHub.
+                </p>
+              </div>
+              
+              <a 
+                href="https://github.com/ArnavPundir22/ZeroLag" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="shrink-0 inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-background border border-border hover:border-accent hover:text-accent rounded-lg font-medium text-sm transition-all shadow-sm group-hover:shadow-md"
+              >
+                View Repository
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@ import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
 import { RxDBLeaderElectionPlugin } from 'rxdb/plugins/leader-election';
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
 import { RxDBMigrationPlugin } from 'rxdb/plugins/migration-schema';
-import { boardSchema, columnSchema, taskSchema, operationSchema, commentSchema, activitySchema } from './schema';
+import { boardSchema, columnSchema, taskSchema, operationSchema, commentSchema, activitySchema, chatMessageSchema } from './schema';
 import { v4 as uuidv4 } from 'uuid';
 
 addRxPlugin(RxDBMigrationPlugin);
@@ -39,15 +39,16 @@ export const getDatabase = async (userId: string) => {
       tasks: { schema: taskSchema },
       operations: { schema: operationSchema },
       comments: { schema: commentSchema },
-      activities: { schema: activitySchema }
+      activities: { schema: activitySchema },
+      chatMessages: { schema: chatMessageSchema }
     });
 
     // Setup Operation Interceptors
-    const collectionsToWatch = ['boards', 'columns', 'tasks', 'comments', 'activities'];
+    const collectionsToWatch = ['boards', 'columns', 'tasks', 'comments', 'activities', 'chatMessages'];
     
     const getBoardIdForDoc = async (colName: string, docData: any) => {
       if (colName === 'boards') return docData.id;
-      if (colName === 'columns') return docData.boardId;
+      if (colName === 'columns' || colName === 'chatMessages') return docData.boardId;
       if (colName === 'tasks') {
         const col = await db.columns.findOne({ selector: { id: docData.columnId } }).exec();
         return col ? col.boardId : 'unknown';

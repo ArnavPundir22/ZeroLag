@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2, LogOut, Calendar as CalendarIcon, Layout, Video } from 'lucide-react';
+import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2, LogOut, Calendar as CalendarIcon, Layout, Video, MessageSquare } from 'lucide-react';
 import { useDatabase } from '../../../db/DatabaseProvider';
 import { useAppStore } from '../../../store';
 import { Board } from '../components/Board';
@@ -8,6 +8,7 @@ import { useClerk, useUser } from '@clerk/react';
 import { useMultiplayer } from '../../../hooks/useMultiplayer';
 import { LiveCursors } from '../components/LiveCursors';
 import { CalendarView } from '../components/CalendarView';
+import { ProjectChat } from '../components/ProjectChat';
 
 export const BoardRouteWrapper = () => {
   const { boardId } = useParams();
@@ -36,7 +37,7 @@ export const BoardView = () => {
   
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [availableLabels, setAvailableLabels] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<'board' | 'calendar'>('board');
+  const [viewMode, setViewMode] = useState<'board' | 'calendar' | 'chat'>('board');
   
   const db = useDatabase();
   const [boardTitle, setBoardTitle] = useState('Board');
@@ -217,6 +218,12 @@ export const BoardView = () => {
                 >
                   <CalendarIcon className="w-3.5 h-3.5" /> Calendar
                 </button>
+                <button
+                  onClick={() => setViewMode('chat')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-md transition-colors ${viewMode === 'chat' ? 'bg-surface text-white shadow' : 'text-text-secondary hover:text-white'}`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5" /> Chat
+                </button>
               </div>
 
               <div className="relative">
@@ -393,6 +400,12 @@ export const BoardView = () => {
               >
                 <CalendarIcon className="w-3.5 h-3.5" /> Calendar
               </button>
+              <button
+                onClick={() => setViewMode('chat')}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-md transition-colors ${viewMode === 'chat' ? 'bg-surface text-white shadow' : 'text-text-secondary hover:text-white'}`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" /> Chat
+              </button>
             </div>
             
             <div className="relative">
@@ -478,7 +491,7 @@ export const BoardView = () => {
         </div>
       </header>
 
-      {viewMode === 'board' ? <Board /> : <CalendarView />}
+      {viewMode === 'board' ? <Board /> : viewMode === 'calendar' ? <CalendarView /> : <ProjectChat />}
 
       {toastMessage && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-surface border border-border shadow-xl rounded-lg px-4 py-3 z-50 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">

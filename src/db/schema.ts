@@ -111,3 +111,21 @@ export const activitySchema: RxJsonSchema<any> = {
   },
   required: ['id', 'taskId', 'type', 'description', 'timestamp']
 };
+
+export const chatMessageSchema: RxJsonSchema<any> = {
+  version: 0,
+  primaryKey: 'id',
+  type: 'object',
+  properties: {
+    id: { type: 'string', maxLength: 100 },
+    boardId: { type: 'string', maxLength: 100 },
+    text: { type: 'string' },
+    authorId: { type: 'string' },
+    authorName: { type: 'string' },
+    authorAvatar: { type: 'string' },
+    timestamp: { type: 'string' },
+    deviceId: { type: 'string' }
+  },
+  required: ['id', 'boardId', 'text', 'authorId', 'authorName', 'timestamp', 'deviceId'],
+  indexes: ['boardId', 'timestamp', ['boardId', 'timestamp']]
+};

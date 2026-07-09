@@ -68,7 +68,8 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!db) return;
     console.log('[SYNC] Received remote operation:', op);
 
-    const collectionName = op.entity.toLowerCase();
+    let collectionName = op.entity.toLowerCase();
+    if (collectionName === 'chatmessages') collectionName = 'chatMessages';
     const collection = (db as any)[collectionName];
 
     if (!collection) {
@@ -208,6 +209,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   else if (op.entity === 'BOARDS') entityName = 'board';
                   else if (op.entity === 'COLUMNS') entityName = 'column';
                   else if (op.entity === 'COMMENTS') entityName = 'comment';
+                  else if (op.entity === 'CHATMESSAGES') entityName = 'chat message';
                   
                   const message = `${author} ${actionVerb} ${entityName}. If you can't see the changes, please refresh the app so that the changes can be synced.`;
                   

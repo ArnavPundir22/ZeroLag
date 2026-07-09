@@ -4,7 +4,7 @@ import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2, LogOut, Calendar 
 import { useDatabase } from '../../../db/DatabaseProvider';
 import { useAppStore } from '../../../store';
 import { Board } from '../components/Board';
-import { useClerk } from '@clerk/react';
+import { useClerk, useUser } from '@clerk/react';
 import { useMultiplayer } from '../../../hooks/useMultiplayer';
 import { LiveCursors } from '../components/LiveCursors';
 import { CalendarView } from '../components/CalendarView';
@@ -24,6 +24,7 @@ export const BoardRouteWrapper = () => {
 
 export const BoardView = () => {
   const { signOut } = useClerk();
+  const { user } = useUser();
   const currentBoardId = useAppStore(state => state.currentBoardId);
   const isOffline = useAppStore(state => state.isOffline);
   const syncStatus = useAppStore(state => state.syncStatus);
@@ -146,9 +147,9 @@ export const BoardView = () => {
             <h2 className="font-medium text-text-primary truncate max-w-[90px] sm:max-w-[200px] md:max-w-xs leading-none">
               {boardTitle}
             </h2>
-            {contributors.length > 0 && (
-              <span className="text-[10px] text-text-secondary mt-0.5 truncate hidden sm:block max-w-[200px]">
-                {contributors.length} {contributors.length === 1 ? 'contributor' : 'contributors'}
+            {contributors.length >= 0 && (
+              <span className="text-[10px] text-text-secondary mt-0.5 truncate hidden sm:block max-w-[200px] hover:text-white cursor-pointer transition-colors" title="Contributors">
+                {Math.max(1, contributors.length)} {Math.max(1, contributors.length) === 1 ? 'contributor' : 'contributors'}
               </span>
             )}
           </div>
@@ -224,32 +225,48 @@ export const BoardView = () => {
         <div className="flex items-center gap-1 sm:gap-4 text-sm relative">
           
           {/* Avatar bubbles for online users */}
-          {Object.values(onlineUsers).length > 0 && (
-            <div className="hidden md:flex items-center -space-x-2 mr-2">
-              {Object.values(onlineUsers).slice(0, 5).map(u => (
-                <div 
-                  key={u.id} 
-                  title={u.name}
-                  className="w-8 h-8 rounded-full border-2 border-surface flex items-center justify-center text-xs font-bold text-white shadow-md relative group z-20"
-                  style={{ backgroundColor: u.color }}
-                >
-                  {u.avatarUrl ? (
-                    <img src={u.avatarUrl} alt={u.name} className="w-full h-full rounded-full object-cover" />
-                  ) : (
-                    u.name.substring(0, 2).toUpperCase()
-                  )}
-                  <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-[10px] bg-black/80 text-white rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">
-                    {u.name}
-                  </span>
-                </div>
-              ))}
-              {Object.values(onlineUsers).length > 5 && (
-                <div className="w-8 h-8 rounded-full border-2 border-surface bg-surface-hover flex items-center justify-center text-[10px] font-bold text-text-secondary z-10">
-                  +{Object.values(onlineUsers).length - 5}
-                </div>
-              )}
-            </div>
-          )}
+          <div className="hidden md:flex items-center -space-x-2 mr-2">
+            {/* Current User */}
+            {user && (
+              <div 
+                title={`${user.fullName || user.firstName || 'You'} (You)`}
+                className="w-8 h-8 rounded-full border-2 border-surface flex items-center justify-center text-xs font-bold text-white shadow-md relative group z-30 bg-accent"
+              >
+                {user.imageUrl ? (
+                  <img src={user.imageUrl} alt="You" className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  (user.fullName || user.firstName || 'Y').substring(0, 2).toUpperCase()
+                )}
+                <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-[10px] bg-black/80 text-white rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">
+                  You
+                </span>
+              </div>
+            )}
+            
+            {/* Other Users */}
+            {Object.values(onlineUsers).slice(0, 4).map(u => (
+              <div 
+                key={u.id} 
+                title={u.name}
+                className="w-8 h-8 rounded-full border-2 border-surface flex items-center justify-center text-xs font-bold text-white shadow-md relative group z-20"
+                style={{ backgroundColor: u.color }}
+              >
+                {u.avatarUrl ? (
+                  <img src={u.avatarUrl} alt={u.name} className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  u.name.substring(0, 2).toUpperCase()
+                )}
+                <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-[10px] bg-black/80 text-white rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">
+                  {u.name}
+                </span>
+              </div>
+            ))}
+            {Object.values(onlineUsers).length > 4 && (
+              <div className="w-8 h-8 rounded-full border-2 border-surface bg-surface-hover flex items-center justify-center text-[10px] font-bold text-text-secondary z-10">
+                +{Object.values(onlineUsers).length - 4}
+              </div>
+            )}
+          </div>
 
           <div className={`flex items-center justify-center sm:justify-start gap-2 p-1.5 sm:px-3 sm:py-1.5 min-w-[32px] sm:min-w-[auto] min-h-[32px] sm:min-h-[36px] rounded-full border transition-colors ${
             isOffline 

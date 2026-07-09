@@ -8,7 +8,8 @@ import { Bell, RefreshCw, CheckCircle2, AlertTriangle, Share2, Activity, Menu } 
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 import { SyncProvider } from './hooks/useSyncEngine';
-import { SignIn, useUser } from '@clerk/react';
+import { ClerkProvider, SignIn, useUser } from '@clerk/react';
+import { dark } from '@clerk/themes';
 import { useAppStore } from './store';
 import { useHotkeys } from 'react-hotkeys-hook';
 
@@ -483,11 +484,34 @@ const ProtectedApp = () => {
   );
 };
 
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+
+if (!PUBLISHABLE_KEY) {
+  throw new Error("Missing Publishable Key")
+}
+
+const ClerkProviderWithTheme = ({ children }: { children: React.ReactNode }) => {
+  const theme = useAppStore(state => state.theme);
+  return (
+    <ClerkProvider 
+      publishableKey={PUBLISHABLE_KEY} 
+      afterSignOutUrl="/"
+      signInFallbackRedirectUrl="/"
+      signUpFallbackRedirectUrl="/"
+      appearance={{ theme: theme === 'dark' ? dark : undefined }}
+    >
+      {children}
+    </ClerkProvider>
+  );
+};
+
 function App() {
   return (
-    <BrowserRouter>
-      <ProtectedApp />
-    </BrowserRouter>
+    <ClerkProviderWithTheme>
+      <BrowserRouter>
+        <ProtectedApp />
+      </BrowserRouter>
+    </ClerkProviderWithTheme>
   );
 }
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDatabase } from '../db/DatabaseProvider';
 
-import { Plus, LayoutTemplate, Clock, ArrowRight, Share2, Loader2, Menu, Settings } from 'lucide-react';
+import { Plus, LayoutTemplate, Clock, ArrowRight, Share2, Loader2, Menu, Settings, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useUser, UserButton } from '@clerk/react';
@@ -10,7 +10,7 @@ import { useAppStore } from '../store';
 import { Modal } from './Modal';
 import { SettingsModal } from './SettingsModal';
 
-const ProjectCard = ({ board, navigate }: { board: any, navigate: any }) => {
+const ProjectCard = ({ board, navigate, onDelete }: { board: any, navigate: any, onDelete: (id: string) => void }) => {
   const db = useDatabase();
   const [progress, setProgress] = useState(0);
 
@@ -54,12 +54,25 @@ const ProjectCard = ({ board, navigate }: { board: any, navigate: any }) => {
     >
       <div className="absolute inset-0 border-t border-white/5 rounded-2xl pointer-events-none" />
       
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-start mb-4 relative z-10">
         <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center border border-accent/30 shadow-[inset_0_0_12px_rgba(99,102,241,0.2)]">
           <LayoutTemplate className="w-5 h-5 text-accent" />
         </div>
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">
-          <ArrowRight className="w-5 h-5 text-accent" />
+        <div className="flex items-center gap-1">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete(board.id);
+            }}
+            className="p-2 text-text-secondary hover:text-red-400 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity rounded-lg hover:bg-red-500/10"
+            title="Delete Project"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">
+            <ArrowRight className="w-5 h-5 text-accent" />
+          </div>
         </div>
       </div>
       
@@ -101,6 +114,7 @@ export const Dashboard: React.FC = () => {
   const [newProjectName, setNewProjectName] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deleteModalState, setDeleteModalState] = useState<{ isOpen: boolean, targetId: string | null }>({ isOpen: false, targetId: null });
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
@@ -142,6 +156,19 @@ export const Dashboard: React.FC = () => {
     setIsCreateModalOpen(false);
     setNewProjectName('');
     navigate(`/b/${boardId}`);
+  };
+
+  const handleDeleteBoard = async () => {
+    if (!db || !deleteModalState.targetId) return;
+    try {
+      const doc = await db.boards.findOne({ selector: { id: deleteModalState.targetId } }).exec();
+      if (doc) {
+        await doc.remove();
+      }
+    } catch (err) {
+      console.error('Failed to delete board:', err);
+    }
+    setDeleteModalState({ isOpen: false, targetId: null });
   };
 
   const handleJoinProject = async (e: React.FormEvent) => {
@@ -206,7 +233,7 @@ export const Dashboard: React.FC = () => {
         <section className="mb-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {boards.map((board) => (
-              <ProjectCard key={board.id} board={board} navigate={navigate} />
+              <ProjectCard key={board.id} board={board} navigate={navigate} onDelete={(id) => setDeleteModalState({ isOpen: true, targetId: id })} />
             ))}
           </div>
         </section>
@@ -263,6 +290,16 @@ export const Dashboard: React.FC = () => {
             <button type="submit" disabled={!newProjectName.trim()} className="px-5 py-2.5 text-sm font-medium bg-gradient-to-r from-accent to-purple-500 text-white rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity shadow-lg shadow-accent/20">Create Project</button>
           </div>
         </form>
+      </Modal>
+
+      <Modal isOpen={deleteModalState.isOpen} onClose={() => setDeleteModalState({ isOpen: false, targetId: null })} title="Delete Project">
+        <div className="space-y-4">
+          <p className="text-text-secondary">Are you sure you want to delete this project? This action cannot be undone and will permanently remove all tasks.</p>
+          <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+            <button type="button" onClick={() => setDeleteModalState({ isOpen: false, targetId: null })} className="px-5 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">Cancel</button>
+            <button type="button" onClick={handleDeleteBoard} className="px-5 py-2.5 text-sm font-medium bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20">Delete Permanently</button>
+          </div>
+        </div>
       </Modal>
 
       <SettingsModal 

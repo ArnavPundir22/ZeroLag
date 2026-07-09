@@ -54,7 +54,7 @@ export const Task: React.FC<TaskProps> = ({ task, columnTitle }) => {
         <div
           {...attributes}
           {...listeners}
-          className="text-text-secondary cursor-grab active:cursor-grabbing p-1 -ml-1 mt-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 shrink-0 transition-opacity touch-none"
+          className="text-text-secondary cursor-grab active:cursor-grabbing p-1 -ml-1 mt-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 shrink-0 transition-opacity touch-none select-none"
           onClick={(e) => e.stopPropagation()} // Prevent opening panel when clicking the drag handle
         >
           <GripVertical className="w-5 h-5" />

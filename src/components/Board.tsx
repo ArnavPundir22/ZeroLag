@@ -49,7 +49,8 @@ export const Board: React.FC = () => {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        distance: 5,
+        delay: 250,
+        tolerance: 5,
       },
     })
   );

@@ -88,7 +88,7 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
         <div 
           {...attributes} 
           {...listeners}
-          className="flex-1 flex items-center cursor-grab active:cursor-grabbing mr-2"
+          className="flex-1 flex items-center cursor-grab active:cursor-grabbing mr-2 touch-none select-none"
         >
           {isEditingTitle ? (
             <input

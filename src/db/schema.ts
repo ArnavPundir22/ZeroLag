@@ -1,13 +1,14 @@
 import type { RxJsonSchema } from 'rxdb';
 
 export const boardSchema: RxJsonSchema<any> = {
-  version: 0,
+  version: 1,
   primaryKey: 'id',
   type: 'object',
   properties: {
     id: { type: 'string', maxLength: 100 },
     workspaceId: { type: 'string' },
     title: { type: 'string' },
+    meetCode: { type: 'string' },
     createdAt: { type: 'string' },
     updatedAt: { type: 'string' }
   },

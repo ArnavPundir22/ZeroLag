@@ -2,8 +2,11 @@ import { createRxDatabase, addRxPlugin } from 'rxdb';
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
 import { RxDBLeaderElectionPlugin } from 'rxdb/plugins/leader-election';
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
+import { RxDBMigrationPlugin } from 'rxdb/plugins/migration-schema';
 import { boardSchema, columnSchema, taskSchema, operationSchema, commentSchema, activitySchema } from './schema';
 import { v4 as uuidv4 } from 'uuid';
+
+addRxPlugin(RxDBMigrationPlugin);
 
 addRxPlugin(RxDBLeaderElectionPlugin);
 addRxPlugin(RxDBUpdatePlugin);
@@ -23,7 +26,15 @@ export const getDatabase = async (userId: string) => {
     });
 
     await db.addCollections({
-      boards: { schema: boardSchema },
+      boards: { 
+        schema: boardSchema,
+        migrationStrategies: {
+          1: function(oldDoc: any) {
+            oldDoc.meetCode = oldDoc.meetCode || '';
+            return oldDoc;
+          }
+        }
+      },
       columns: { schema: columnSchema },
       tasks: { schema: taskSchema },
       operations: { schema: operationSchema },

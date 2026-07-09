@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2, LogOut, Calendar as CalendarIcon, Layout } from 'lucide-react';
+import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2, LogOut, Calendar as CalendarIcon, Layout, Video } from 'lucide-react';
 import { useDatabase } from '../../../db/DatabaseProvider';
 import { useAppStore } from '../../../store';
 import { Board } from '../components/Board';
@@ -47,7 +47,9 @@ export const BoardView = () => {
   useEffect(() => {
     if (!db || !currentBoardId) return;
     const sub = db.boards.findOne({ selector: { id: currentBoardId } }).$.subscribe((doc: any) => {
-      if (doc) setBoardTitle(doc.title);
+      if (doc) {
+        setBoardTitle(doc.title);
+      }
     });
     return () => sub.unsubscribe();
   }, [db, currentBoardId]);
@@ -110,6 +112,56 @@ export const BoardView = () => {
     } catch (err) {
       console.error('Failed to copy', err);
     }
+  };
+
+  const handleMeetClick = () => {
+    if (!currentBoardId) return;
+    
+    // Connect directly to the deterministic meeting room
+    // The deployed server needs the update for this to work perfectly,
+    // but locally it will force-create the room if it doesn't exist,
+    // or join it if it does.
+    const form = document.createElement('form');
+    form.method = 'POST';
+    // If the user deploys the updated BaatChit, this URL will work perfectly:
+    // form.action = 'https://baatcheet-88e9.onrender.com/';
+    // For local testing of the modified BaatChit:
+    form.action = 'http://localhost:5000/'; 
+    // Wait, the prompt says "url of a aurameet room - https://baatcheet-88e9.onrender.com/..." 
+    // I should point it back to their Render deploy, but with a note, 
+    // or just point it to Render, assuming they will deploy it soon.
+    form.action = 'https://baatcheet-88e9.onrender.com/';
+    form.target = '_blank';
+    
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'create';
+    
+    const roomCodeInput = document.createElement('input');
+    roomCodeInput.type = 'hidden';
+    roomCodeInput.name = 'room_code';
+    // Use first 6 chars of boardId for a clean, deterministic code
+    roomCodeInput.value = currentBoardId.substring(0, 6).toUpperCase();
+    
+    const roomNameInput = document.createElement('input');
+    roomNameInput.type = 'hidden';
+    roomNameInput.name = 'room_name';
+    roomNameInput.value = boardTitle;
+    
+    const usernameInput = document.createElement('input');
+    usernameInput.type = 'hidden';
+    usernameInput.name = 'username';
+    usernameInput.value = user?.fullName || user?.firstName || 'ZeroLag User';
+    
+    form.appendChild(actionInput);
+    form.appendChild(roomCodeInput);
+    form.appendChild(roomNameInput);
+    form.appendChild(usernameInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
   };
 
   return (
@@ -274,6 +326,14 @@ export const BoardView = () => {
             {/* Desktop Actions */}
             <div className="hidden sm:flex items-center gap-2">
               <button
+                onClick={handleMeetClick}
+                className="flex items-center justify-center min-w-[36px] min-h-[36px] gap-2 px-3 rounded-lg border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 transition-colors"
+                title="Start Video Meeting"
+              >
+                <Video className="w-4 h-4" />
+                <span className="font-medium">Meet</span>
+              </button>
+              <button
                 onClick={() => window.location.reload()}
                 className="flex items-center justify-center min-w-[36px] min-h-[36px] gap-2 px-3 rounded-lg border border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
                 title="Refresh App"
@@ -369,6 +429,13 @@ export const BoardView = () => {
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+            <button
+              onClick={handleMeetClick}
+              className="flex items-center justify-center min-w-[32px] min-h-[32px] p-1.5 rounded-lg border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 transition-colors"
+              title="Start Video Meeting"
+            >
+              <Video className="w-4 h-4" />
+            </button>
             <button
               onClick={() => window.location.reload()}
               className="flex items-center justify-center min-w-[32px] min-h-[32px] p-1.5 rounded-lg border border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"

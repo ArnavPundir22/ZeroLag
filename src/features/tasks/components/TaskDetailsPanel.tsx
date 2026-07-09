@@ -46,8 +46,9 @@ export const TaskDetailsPanel: React.FC = () => {
       if (doc) setTask(doc.toJSON());
     });
 
-    const cSub = db.comments.find({ selector: { taskId: selectedTaskId }, sort: [{ createdAt: 'asc' }] }).$.subscribe((docs: any[]) => {
-      setComments(docs.map((d: any) => d.toJSON()));
+    const cSub = db.comments.find({ selector: { taskId: selectedTaskId } }).$.subscribe((docs: any[]) => {
+      const sorted = docs.map((d: any) => d.toJSON()).sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      setComments(sorted);
     });
     
     const colSub = db.columns.find({ selector: { boardId: currentBoardId }, sort: [{ position: 'asc' }] }).$.subscribe((cols: any[]) => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Info, Github, ExternalLink } from 'lucide-react';
+import { Info, GitBranch, ExternalLink } from 'lucide-react';
 
 export const AboutPage: React.FC = () => {
   return (
@@ -37,7 +37,7 @@ export const AboutPage: React.FC = () => {
             <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
               <div>
                 <h3 className="text-lg font-semibold text-text-primary mb-2 flex items-center gap-2">
-                  <Github className="w-5 h-5 text-accent" />
+                  <GitBranch className="w-5 h-5 text-accent" />
                   Architecture & Source Code
                 </h3>
                 <p className="text-sm text-text-secondary max-w-lg">

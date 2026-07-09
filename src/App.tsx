@@ -35,7 +35,6 @@ const BoardView = () => {
   const filterLabels = useAppStore(state => state.filterLabels);
   const setFilterLabels = useAppStore(state => state.setFilterLabels);
   const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
-  const notificationsEnabled = useAppStore(state => state.notificationsEnabled);
   
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [availableLabels, setAvailableLabels] = useState<string[]>([]);

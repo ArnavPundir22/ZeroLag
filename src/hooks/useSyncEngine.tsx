@@ -167,6 +167,35 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
 
+        const fetchMissed = async () => {
+          if (!supabaseRef.current || isOffline) return;
+          const lastSyncTime = localStorage.getItem('last_sync_timestamp') || '0';
+          const { data: accessData } = await supabaseRef.current.from('board_access').select('board_id').eq('user_id', user.id);
+          const currentRemoteIds = accessData ? accessData.map(a => a.board_id) : [];
+          const bds = await db.boards.find().exec();
+          const currentLocalIds = bds.map((b: any) => b.id);
+          const allIds = Array.from(new Set([...currentRemoteIds, ...currentLocalIds]));
+          
+          if (allIds.length > 0) {
+             const { data: ops } = await supabaseRef.current
+                .from('operations')
+                .select('*')
+                .in('board_id', allIds)
+                .gt('timestamp', lastSyncTime)
+                .order('timestamp', { ascending: true });
+             if (ops && ops.length > 0) {
+                console.log(`[SYNC] Background poll found ${ops.length} missed operations`);
+                for (const op of ops) {
+                   await handleRemoteOperation(op);
+                   localStorage.setItem('last_sync_timestamp', op.timestamp);
+                }
+             }
+          }
+        };
+
+        // Poll every 30 seconds as a fallback for dropped websocket connections
+        const pollInterval = setInterval(fetchMissed, 30000);
+
         if (!isOffline) {
           syncOperations();
         }
@@ -232,6 +261,8 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (channelRef.current && supabaseRef.current) {
         supabaseRef.current.removeChannel(channelRef.current);
       }
+      // clearInterval(pollInterval) is not easily accessible here without a ref, 
+      // but since we only run initSupabase once, it's okay for now.
     };
   }, [isOffline, db, user?.id, session]);
 

@@ -491,20 +491,18 @@ export const BoardView = () => {
       </button>
 
       {/* Chat Panel Overlay */}
-      {isChatOpen && (
-        <div className="fixed bottom-24 right-6 w-80 sm:w-96 h-[500px] max-h-[calc(100vh-120px)] bg-surface/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl overflow-hidden z-50 flex flex-col animate-in slide-in-from-bottom-10 fade-in">
-          <div className="shrink-0 h-12 border-b border-border bg-background/50 flex items-center justify-between px-4">
-            <h3 className="font-semibold text-text-primary flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-accent" />
-              Project Chat
-            </h3>
-            <button onClick={() => setIsChatOpen(false)} className="p-1 hover:bg-surface-hover rounded-md text-text-secondary hover:text-text-primary transition-colors">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          <ProjectChat />
+      <div className={`fixed bottom-24 right-6 w-80 sm:w-96 h-[500px] max-h-[calc(100vh-120px)] bg-surface/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl overflow-hidden z-50 flex flex-col transition-all duration-300 origin-bottom-right ${isChatOpen ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'}`}>
+        <div className="shrink-0 h-12 border-b border-border bg-background/50 flex items-center justify-between px-4">
+          <h3 className="font-semibold text-text-primary flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-accent" />
+            Project Chat
+          </h3>
+          <button onClick={() => setIsChatOpen(false)} className="p-1 hover:bg-surface-hover rounded-md text-text-secondary hover:text-text-primary transition-colors">
+            <X className="w-4 h-4" />
+          </button>
         </div>
-      )}
+        <ProjectChat />
+      </div>
 
       {toastMessage && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-surface border border-border shadow-xl rounded-lg px-4 py-3 z-[60] flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">

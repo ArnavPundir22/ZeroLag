@@ -82,7 +82,7 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
     <div 
       ref={setNodeRef}
       style={style}
-      className={`flex flex-col flex-shrink-0 min-w-full md:min-w-[280px] md:max-w-[320px] bg-surface/20 backdrop-blur-xl rounded-2xl p-3 sm:p-4 border border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 ${isDragging ? 'opacity-50 ring-2 ring-accent' : ''} ${!isMobileExpanded ? 'h-auto md:h-full md:max-h-full md:min-h-0' : 'h-[65vh] md:h-full max-h-[80vh] md:max-h-full min-h-0'}`}
+      className={`flex flex-col flex-shrink-0 min-w-full md:flex-1 md:min-w-[280px] bg-surface/20 backdrop-blur-xl rounded-2xl p-3 sm:p-4 border border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 ${isDragging ? 'opacity-50 ring-2 ring-accent' : ''} ${!isMobileExpanded ? 'h-auto md:h-full md:max-h-full md:min-h-0' : 'h-[65vh] md:h-full max-h-[80vh] md:max-h-full min-h-0'}`}
     >
       <div className="flex items-center justify-between mb-4 px-1">
         <div 

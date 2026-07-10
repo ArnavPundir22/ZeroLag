@@ -31,7 +31,7 @@ export const columnSchema: RxJsonSchema<any> = {
 };
 
 export const taskSchema: RxJsonSchema<any> = {
-  version: 0,
+  version: 1,
   primaryKey: 'id',
   type: 'object',
   properties: {
@@ -46,6 +46,7 @@ export const taskSchema: RxJsonSchema<any> = {
     updatedAt: { type: 'string' },
     version: { type: 'number' },
     deviceId: { type: 'string' },
+    assignee: { type: 'string' },
     attachments: {
       type: 'array',
       items: {

@@ -36,7 +36,15 @@ export const getDatabase = async (userId: string) => {
         }
       },
       columns: { schema: columnSchema },
-      tasks: { schema: taskSchema },
+      tasks: { 
+        schema: taskSchema,
+        migrationStrategies: {
+          1: function(oldDoc: any) {
+            oldDoc.assignee = oldDoc.assignee || '';
+            return oldDoc;
+          }
+        }
+      },
       operations: { schema: operationSchema },
       comments: { schema: commentSchema },
       activities: { schema: activitySchema },

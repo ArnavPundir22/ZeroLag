@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertCircle, Calendar, Tag } from 'lucide-react';
+import { AlertCircle, Calendar, Tag, Users } from 'lucide-react';
 
 interface TaskMetaFieldsProps {
   task: any;
@@ -57,7 +57,20 @@ export const TaskMetaFields: React.FC<TaskMetaFieldsProps> = ({ task, columns, u
             </option>
           ))}
         </select>
-
+        <div className="text-text-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-widest mt-4">
+          <Users className="w-3.5 h-3.5" /> Assignee
+        </div>
+        <select
+          value={task.assignee || ''}
+          onChange={(e) => updateField('assignee', e.target.value)}
+          className="bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-inner appearance-none w-full"
+        >
+          <option value="" className="bg-background text-text-primary">Unassigned</option>
+          <option value="Arnav" className="bg-background text-text-primary">Arnav</option>
+          <option value="Alice" className="bg-background text-text-primary">Alice</option>
+          <option value="Bob" className="bg-background text-text-primary">Bob</option>
+          <option value="Charlie" className="bg-background text-text-primary">Charlie</option>
+        </select>
         <div className="text-text-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-widest mt-4">
           <Tag className="w-3.5 h-3.5" /> Story Points
         </div>

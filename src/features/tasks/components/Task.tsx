@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, User } from 'lucide-react';
 import { useAppStore } from '../../../store';
 
 interface TaskProps {
@@ -121,9 +121,17 @@ export const Task: React.FC<TaskProps> = ({ task, columnTitle }) => {
               );
             })()}
             
-            <span className="text-text-secondary text-[10px] ml-auto">
-              {new Date(task.updatedAt).toLocaleDateString()}
-            </span>
+            <div className="flex items-center gap-2 ml-auto">
+              {task.assignee && (
+                <div className="flex items-center gap-1 text-[10px] text-accent bg-accent/10 px-1.5 py-0.5 rounded-md border border-accent/20">
+                  <User className="w-3 h-3" />
+                  <span className="font-medium truncate max-w-[60px]">{task.assignee}</span>
+                </div>
+              )}
+              <span className="text-text-secondary text-[10px]">
+                {new Date(task.updatedAt).toLocaleDateString()}
+              </span>
+            </div>
           </div>
         </div>
       </div>

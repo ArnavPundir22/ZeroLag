@@ -87,16 +87,18 @@ export const Task: React.FC<TaskProps> = ({ task, columnTitle }) => {
               </span>
             )}
             
-            {task.dueDate && (() => {
-              const [year, month, day] = task.dueDate.split('-');
-              const formattedDate = `${month}/${day}/${year} AT 11:59P.M.`;
-              const dueDateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 23, 59, 59);
-              
+            {(() => {
               const isCompleted = columnTitle?.toLowerCase().includes('done') || columnTitle?.toLowerCase().includes('complete') || task.status?.toLowerCase() === 'done';
-              const completedDate = new Date(task.updatedAt);
               
               if (isCompleted) {
-                const isLateCompleted = completedDate > dueDateObj;
+                let isLateCompleted = false;
+                if (task.dueDate) {
+                  const [year, month, day] = task.dueDate.split('-');
+                  const dueDateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 23, 59, 59);
+                  const completedDate = new Date(task.updatedAt);
+                  isLateCompleted = completedDate > dueDateObj;
+                }
+                
                 return (
                   <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border ${
                     isLateCompleted 
@@ -108,24 +110,31 @@ export const Task: React.FC<TaskProps> = ({ task, columnTitle }) => {
                 );
               }
               
-              const isOverdue = new Date() > dueDateObj;
-              
-              return (
-                <>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                    isOverdue 
-                      ? 'text-red-400 border-red-500/50 shadow-[0_0_8px_rgba(248,113,113,0.2)] bg-red-500/10' 
-                      : 'text-indigo-400 border-indigo-500/50 shadow-[0_0_8px_rgba(99,102,241,0.2)] bg-indigo-500/10'
-                  }`}>
-                    {formattedDate}
-                  </span>
-                  {isOverdue && (
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border text-red-500 border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.3)] bg-red-500/20 animate-pulse">
-                      DELAY
+              if (task.dueDate) {
+                const [year, month, day] = task.dueDate.split('-');
+                const formattedDate = `${month}/${day}/${year} AT 11:59P.M.`;
+                const dueDateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 23, 59, 59);
+                const isOverdue = new Date() > dueDateObj;
+                
+                return (
+                  <>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                      isOverdue 
+                        ? 'text-red-400 border-red-500/50 shadow-[0_0_8px_rgba(248,113,113,0.2)] bg-red-500/10' 
+                        : 'text-indigo-400 border-indigo-500/50 shadow-[0_0_8px_rgba(99,102,241,0.2)] bg-indigo-500/10'
+                    }`}>
+                      {formattedDate}
                     </span>
-                  )}
-                </>
-              );
+                    {isOverdue && (
+                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border text-red-500 border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.3)] bg-red-500/20 animate-pulse">
+                        DELAY
+                      </span>
+                    )}
+                  </>
+                );
+              }
+              
+              return null;
             })()}
             
             <div className="flex items-center gap-2 ml-auto">

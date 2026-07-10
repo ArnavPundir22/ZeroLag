@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { DndContext, DragOverlay, closestCorners, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
-import { Plus } from 'lucide-react';
 import { Column } from './Column';
 import { Task } from '../../tasks/components/Task';
 import { useDatabase } from '../../../db/DatabaseProvider';
@@ -140,22 +139,6 @@ export const Board: React.FC = () => {
     }
   };
 
-  const handleAddColumn = async () => {
-    if (!db || !currentBoardId) return;
-    
-    const newTitle = prompt('Enter name for the new phase:');
-    if (!newTitle || !newTitle.trim()) return;
-
-    const newPosition = columns.length;
-    
-    await db.columns.insert({
-      id: uuidv4(),
-      boardId: currentBoardId,
-      title: newTitle.trim(),
-      position: newPosition
-    });
-  };
-
   const handleDragEnd = async (event: any) => {
     setActiveTask(null);
     const { over } = event;
@@ -247,16 +230,6 @@ export const Board: React.FC = () => {
                 tasks={filteredTasks.filter(t => t.columnId === col.id)}
               />
             ))}
-            
-            <div className="flex-shrink-0 min-w-full md:min-w-[280px] h-[60px] flex items-center justify-center">
-              <button
-                onClick={handleAddColumn}
-                className="w-full h-full flex items-center justify-center gap-2 bg-surface/10 hover:bg-surface/20 border-2 border-dashed border-border/50 hover:border-accent/50 rounded-2xl text-text-secondary hover:text-accent transition-all duration-300 backdrop-blur-sm"
-              >
-                <Plus className="w-5 h-5" />
-                <span className="font-medium text-sm tracking-wide">Add Phase</span>
-              </button>
-            </div>
           </SortableContext>
         </div>
       </div>

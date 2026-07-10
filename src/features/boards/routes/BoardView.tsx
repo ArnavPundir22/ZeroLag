@@ -9,6 +9,7 @@ import { useMultiplayer } from '../../../hooks/useMultiplayer';
 import { LiveCursors } from '../components/LiveCursors';
 import { CalendarView } from '../components/CalendarView';
 import { BoardHeader } from '../components/BoardHeader';
+import { v4 as uuidv4 } from 'uuid';
 
 export const BoardRouteWrapper = () => {
   const { boardId } = useParams();
@@ -116,6 +117,23 @@ export const BoardView = () => {
     }
   };
 
+  const handleAddColumn = async () => {
+    if (!db || !currentBoardId) return;
+    const newTitle = prompt('Enter name for the new phase:');
+    if (!newTitle || !newTitle.trim()) return;
+    try {
+      const cols = await db.columns.find({ selector: { boardId: currentBoardId } }).exec();
+      await db.columns.insert({
+        id: uuidv4(),
+        boardId: currentBoardId,
+        title: newTitle.trim(),
+        position: cols.length
+      });
+    } catch (err) {
+      console.error('Failed to add column', err);
+    }
+  };
+
   const handleRenameSubmit = async () => {
     if (!db || !currentBoardId || !tempTitle.trim() || tempTitle.trim() === boardTitle) {
       setIsEditingTitle(false);
@@ -183,6 +201,7 @@ export const BoardView = () => {
         handleMeetClick={handleMeetClick}
         handleShare={handleShare}
         setIsSidebarOpen={setIsSidebarOpen}
+        handleAddColumn={handleAddColumn}
       />
 
       {viewMode === 'board' ? <Board /> : <CalendarView />}

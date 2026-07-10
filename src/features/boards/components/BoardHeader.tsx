@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2, Calendar as CalendarIcon, Layout, Video } from 'lucide-react';
+import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2, Calendar as CalendarIcon, Layout, Video, Plus } from 'lucide-react';
 import { BoardFilter } from './BoardFilter';
 
 interface BoardHeaderProps {
@@ -23,12 +23,13 @@ interface BoardHeaderProps {
   handleMeetClick: () => void;
   handleShare: () => void;
   setIsSidebarOpen: (isOpen: boolean) => void;
+  handleAddColumn: () => void;
 }
 
 export const BoardHeader: React.FC<BoardHeaderProps> = ({
   boardTitle, tempTitle, setTempTitle, isEditingTitle, setIsEditingTitle, handleRenameSubmit,
   viewMode, setViewMode, filterPriorities, togglePriorityFilter, filterLabels, availableLabels, toggleLabelFilter,
-  user, onlineUsers, isOffline, syncStatus, handleMeetClick, handleShare, setIsSidebarOpen
+  user, onlineUsers, isOffline, syncStatus, handleMeetClick, handleShare, setIsSidebarOpen, handleAddColumn
 }) => {
   return (
     <header className="flex flex-col sm:flex-row sm:h-14 sm:items-center justify-between shrink-0 bg-background/80 backdrop-blur-md z-10 relative border-b border-border">
@@ -170,6 +171,14 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
           {/* Desktop Actions */}
           <div className="hidden sm:flex items-center gap-2">
             <button
+              onClick={handleAddColumn}
+              className="flex items-center justify-center min-w-[36px] min-h-[36px] gap-2 px-3 rounded-lg bg-accent text-white hover:bg-accent/90 transition-colors shadow-sm"
+              title="Add Custom Phase"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="font-medium">Phase</span>
+            </button>
+            <button
               onClick={handleMeetClick}
               className="flex items-center justify-center min-w-[36px] min-h-[36px] gap-2 px-3 rounded-lg border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 transition-colors"
               title="Start Video Meeting"
@@ -225,6 +234,13 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+          <button
+            onClick={handleAddColumn}
+            className="flex items-center justify-center min-w-[32px] min-h-[32px] p-1.5 rounded-lg bg-accent text-white hover:bg-accent/90 transition-colors shadow-sm"
+            title="Add Custom Phase"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
           <button
             onClick={handleMeetClick}
             className="flex items-center justify-center min-w-[32px] min-h-[32px] p-1.5 rounded-lg border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 transition-colors"

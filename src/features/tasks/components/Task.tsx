@@ -92,11 +92,23 @@ export const Task: React.FC<TaskProps> = ({ task, columnTitle }) => {
               const formattedDate = `${month}/${day}/${year} AT 11:59P.M.`;
               const dueDateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 23, 59, 59);
               
-              const isCompleted = columnTitle?.toLowerCase().includes('done') || columnTitle?.toLowerCase().includes('complete');
+              const isCompleted = columnTitle?.toLowerCase().includes('done') || columnTitle?.toLowerCase().includes('complete') || task.status?.toLowerCase() === 'done';
               const completedDate = new Date(task.updatedAt);
               
-              const isOverdue = isCompleted ? completedDate > dueDateObj : new Date() > dueDateObj;
-              const isCompletedBeforeDeadline = isCompleted && completedDate <= dueDateObj;
+              if (isCompleted) {
+                const isLateCompleted = completedDate > dueDateObj;
+                return (
+                  <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border ${
+                    isLateCompleted 
+                      ? 'text-orange-400 border-orange-500/50 shadow-[0_0_8px_rgba(249,115,22,0.3)] bg-orange-500/20' 
+                      : 'text-emerald-500 border-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.3)] bg-emerald-500/20'
+                  }`}>
+                    {isLateCompleted ? 'LATE COMPLETED' : 'COMPLETED'}
+                  </span>
+                );
+              }
+              
+              const isOverdue = new Date() > dueDateObj;
               
               return (
                 <>
@@ -107,14 +119,9 @@ export const Task: React.FC<TaskProps> = ({ task, columnTitle }) => {
                   }`}>
                     {formattedDate}
                   </span>
-                  {isOverdue && !isCompleted && (
+                  {isOverdue && (
                     <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border text-red-500 border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.3)] bg-red-500/20 animate-pulse">
                       DELAY
-                    </span>
-                  )}
-                  {isCompletedBeforeDeadline && (
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border text-emerald-500 border-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.3)] bg-emerald-500/20">
-                      TASK COMPLETED
                     </span>
                   )}
                 </>

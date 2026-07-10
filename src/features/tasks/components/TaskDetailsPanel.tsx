@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from '../../../store';
 import { useDatabase } from '../../../db/DatabaseProvider';
-import { X, Calendar, Tag, AlertCircle, MessageSquare, Send, Trash2, Paperclip, Download, UploadCloud, File } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { motion, AnimatePresence } from 'framer-motion';
 import { v4 as uuidv4 } from 'uuid';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { useUser } from '@clerk/react';
 import { TaskMetaFields } from './TaskMetaFields';
 import { TaskLabels } from './TaskLabels';

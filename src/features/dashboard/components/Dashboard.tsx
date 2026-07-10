@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDatabase } from '../../../db/DatabaseProvider';
 
-import { Plus, LayoutDashboard, Clock, ArrowRight, Share2, Loader2, Menu, Settings, Trash2, LogOut } from 'lucide-react';
+import { Plus, Menu, Settings, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useUser, UserButton, useClerk } from '@clerk/react';

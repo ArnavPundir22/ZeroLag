@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertCircle, Calendar, Tag, Users } from 'lucide-react';
 
 interface TaskMetaFieldsProps {
@@ -9,6 +9,12 @@ interface TaskMetaFieldsProps {
 }
 
 export const TaskMetaFields: React.FC<TaskMetaFieldsProps> = ({ task, columns, updateField, getPriorityColors }) => {
+  const [assigneeValue, setAssigneeValue] = useState(task.assignee || '');
+
+  useEffect(() => {
+    setAssigneeValue(task.assignee || '');
+  }, [task.assignee]);
+
   return (
     <div className="grid grid-cols-2 gap-6">
       <div className="flex flex-col gap-3">
@@ -63,20 +69,16 @@ export const TaskMetaFields: React.FC<TaskMetaFieldsProps> = ({ task, columns, u
         <input
           type="text"
           placeholder="e.g. Arnav"
-          value={task.assignee || ''}
-          onChange={(e) => updateField('assignee', e.target.value)}
+          value={assigneeValue}
+          onChange={(e) => setAssigneeValue(e.target.value)}
+          onBlur={() => updateField('assignee', assigneeValue)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.currentTarget.blur();
+            }
+          }}
           className="bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-inner w-full"
         />
-        <div className="text-text-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-widest mt-4">
-          <Tag className="w-3.5 h-3.5" /> Story Points
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <input
-            type="number"
-            placeholder="0"
-            className="bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-sm font-medium text-white focus:outline-none focus:border-accent w-full text-center"
-          />
-        </div>
       </div>
     </div>
   );

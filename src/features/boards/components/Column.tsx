@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Task } from '../../tasks/components/Task';
-import { Plus, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { useDatabase } from '../../../db/DatabaseProvider';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -78,6 +78,24 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
     }
   };
 
+  const handleDeleteColumn = async () => {
+    if (tasks.length > 0) {
+      alert('Cannot delete a phase that contains tasks. Please move or delete the tasks first.');
+      return;
+    }
+    
+    if (window.confirm(`Are you sure you want to delete the phase "${column.title}"?`)) {
+      try {
+        const doc = await db.columns.findOne({ selector: { id: column.id } }).exec();
+        if (doc) {
+          await doc.remove();
+        }
+      } catch (err) {
+        console.error('Failed to delete column', err);
+      }
+    }
+  };
+
   return (
     <div 
       ref={setNodeRef}
@@ -117,12 +135,21 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
             </h3>
           )}
         </div>
-        <button
-          onClick={() => setIsAdding(true)}
-          className="text-text-secondary hover:text-white hover:bg-accent p-2 rounded-lg transition-all min-w-[36px] min-h-[36px] flex items-center justify-center hover:shadow-lg hover:shadow-accent/20"
-        >
-          <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setIsAdding(true)}
+            className="text-text-secondary hover:text-white hover:bg-accent p-2 rounded-lg transition-all min-w-[36px] min-h-[36px] flex items-center justify-center hover:shadow-lg hover:shadow-accent/20"
+          >
+            <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
+          </button>
+          <button
+            onClick={handleDeleteColumn}
+            className="text-text-secondary hover:text-white hover:bg-red-500 p-2 rounded-lg transition-all min-w-[36px] min-h-[36px] flex items-center justify-center hover:shadow-lg hover:shadow-red-500/20"
+            title="Delete Phase"
+          >
+            <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />
+          </button>
+        </div>
       </div>
 
       <div className={`flex-1 overflow-y-auto overflow-x-hidden p-1 custom-scrollbar md:min-h-[150px] ${isMobileExpanded ? 'block' : 'hidden md:block'}`}>

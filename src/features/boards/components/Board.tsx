@@ -127,78 +127,80 @@ export const Board: React.FC = () => {
         });
       }
     }
-    
-    // Moving column over another column
-    const isActiveColumn = active.data.current?.type === 'Column';
-    if (isActiveColumn && isOverColumn && activeId !== overId) {
-      setColumns(prev => {
-        const oldIndex = prev.findIndex(c => c.id === activeId);
-        const newIndex = prev.findIndex(c => c.id === overId);
-        return arrayMove(prev, oldIndex, newIndex);
-      });
-    }
   };
 
   const handleDragEnd = async (event: any) => {
     setActiveTask(null);
-    const { over } = event;
+    const { active, over } = event;
     if (!over) return;
 
-    // The state was optimistically updated in handleDragOver.
-    // Now we persist the order to RxDB.
-    const updatedTasks = [...tasks];
-    
-    try {
-      // Re-assign positions based on the new array order to keep it simple.
-      // We will batch patch them.
-      for (let i = 0; i < updatedTasks.length; i++) {
-        const task = updatedTasks[i];
-        const doc = await db.tasks.findOne({ selector: { id: task.id } }).exec();
-        if (doc && (doc.columnId !== task.columnId || doc.position !== i)) {
-          
-          const oldColumnId = doc.columnId;
-          
-          await doc.patch({
-            columnId: task.columnId,
-            position: i,
-            updatedAt: new Date().toISOString()
-          });
+    const isActiveColumn = active.data.current?.type === 'Column';
 
-          // Log activity if column changed
-          if (oldColumnId !== task.columnId) {
-            const col = columns.find(c => c.id === task.columnId);
-            if (col) {
-              await db.activities.insert({
-                id: uuidv4(),
-                taskId: task.id,
-                type: 'moved',
-                description: `Moved to ${col.title}`,
-                timestamp: new Date().toISOString()
-              });
+    if (isActiveColumn && over.data.current?.type === 'Column' && active.id !== over.id) {
+      const oldIndex = columns.findIndex(c => c.id === active.id);
+      const newIndex = columns.findIndex(c => c.id === over.id);
+      
+      const updatedColumns = arrayMove(columns, oldIndex, newIndex);
+      setColumns(updatedColumns);
+      
+      try {
+        for (let i = 0; i < updatedColumns.length; i++) {
+          const col = updatedColumns[i];
+          const doc = await db.columns.findOne({ selector: { id: col.id } }).exec();
+          if (doc && doc.position !== i) {
+            await doc.patch({ position: i });
+          }
+        }
+      } catch (err) {
+        console.error('Failed to save column order:', err);
+        const actualCols = await db.columns.find({ selector: { boardId: currentBoardId }, sort: [{ position: 'asc' }] }).exec();
+        setColumns(actualCols.map((c: any) => c.toJSON()));
+      }
+      return;
+    }
+
+    if (!isActiveColumn) {
+      // The state was optimistically updated in handleDragOver.
+      // Now we persist the order to RxDB.
+      const updatedTasks = [...tasks];
+      
+      try {
+        // Re-assign positions based on the new array order to keep it simple.
+        // We will batch patch them.
+        for (let i = 0; i < updatedTasks.length; i++) {
+          const task = updatedTasks[i];
+          const doc = await db.tasks.findOne({ selector: { id: task.id } }).exec();
+          if (doc && (doc.columnId !== task.columnId || doc.position !== i)) {
+            
+            const oldColumnId = doc.columnId;
+            
+            await doc.patch({
+              columnId: task.columnId,
+              position: i,
+              updatedAt: new Date().toISOString()
+            });
+
+            // Log activity if column changed
+            if (oldColumnId !== task.columnId) {
+              const col = columns.find(c => c.id === task.columnId);
+              if (col) {
+                await db.activities.insert({
+                  id: uuidv4(),
+                  taskId: task.id,
+                  type: 'moved',
+                  description: `Moved to ${col.title}`,
+                  timestamp: new Date().toISOString()
+                });
+              }
             }
           }
         }
+      } catch (err) {
+        console.error('Failed to save drag and drop changes:', err);
+        // Revert optimistic UI state from DB
+        const actualTasks = await db.tasks.find({ sort: [{ position: 'asc' }] }).exec();
+        setTasks(actualTasks.map((t: any) => t.toJSON()));
       }
-
-      // Persist Column Order
-      const updatedColumns = [...columns];
-      for (let i = 0; i < updatedColumns.length; i++) {
-        const col = updatedColumns[i];
-        const doc = await db.columns.findOne({ selector: { id: col.id } }).exec();
-        if (doc && doc.position !== i) {
-          await doc.patch({ position: i });
-        }
-      }
-    } catch (err) {
-      console.error('Failed to save drag and drop changes:', err);
-      useAppStore.getState().setGlobalToastMessage('Failed to save order. Reverting...');
-      
-      // Revert optimistic UI state from DB
-      const actualTasks = await db.tasks.find({ sort: [{ position: 'asc' }] }).exec();
-      setTasks(actualTasks.map((t: any) => t.toJSON()));
-      
-      const actualCols = await db.columns.find({ selector: { boardId: currentBoardId }, sort: [{ position: 'asc' }] }).exec();
-      setColumns(actualCols.map((c: any) => c.toJSON()));
     }
   };
 

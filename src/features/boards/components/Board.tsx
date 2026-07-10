@@ -6,7 +6,6 @@ import { Task } from '../../tasks/components/Task';
 import { useDatabase } from '../../../db/DatabaseProvider';
 import { useAppStore } from '../../../store';
 import { v4 as uuidv4 } from 'uuid';
-import { Plus } from 'lucide-react';
 
 export const Board: React.FC = () => {
   const db = useDatabase();

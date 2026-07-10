@@ -265,13 +265,13 @@ export const Sidebar: React.FC = () => {
                     <Link
                       to={`/b/${board.id}`}
                       onClick={() => setCurrentBoardId(board.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-3 sm:py-2 rounded-lg font-medium text-sm transition-colors ${
+                      className={`w-full flex items-center gap-3 px-3 py-3 sm:py-2 rounded-lg font-medium text-sm transition-all ${
                         isActive 
-                          ? 'bg-surface-hover text-text-primary' 
+                          ? 'bg-accent/15 text-accent shadow-[inset_2px_0_0_0_var(--color-accent)]' 
                           : 'text-text-secondary hover:bg-surface-hover/50 hover:text-text-primary'
                       }`}
                     >
-                      <Layout className={`w-4 h-4 ${isActive ? 'text-accent' : ''}`} />
+                      <Layout className={`w-4 h-4 ${isActive ? 'text-accent drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]' : ''}`} />
                       <span className="truncate pr-6">{board.title}</span>
                     </Link>
                     <button

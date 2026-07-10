@@ -6,6 +6,7 @@ import { Task } from '../../tasks/components/Task';
 import { useDatabase } from '../../../db/DatabaseProvider';
 import { useAppStore } from '../../../store';
 import { v4 as uuidv4 } from 'uuid';
+import { Plus } from 'lucide-react';
 
 export const Board: React.FC = () => {
   const db = useDatabase();
@@ -73,6 +74,17 @@ export const Board: React.FC = () => {
       },
     })
   );
+
+  const handleAddColumn = async () => {
+    if (!db || !currentBoardId) return;
+    const newColId = uuidv4();
+    await db.columns.insert({
+      id: newColId,
+      boardId: currentBoardId,
+      title: 'New Section',
+      position: columns.length * 1000
+    });
+  };
 
   const handleDragStart = (event: any) => {
     const { active } = event;
@@ -231,6 +243,14 @@ export const Board: React.FC = () => {
               />
             ))}
           </SortableContext>
+          
+          <button 
+            onClick={handleAddColumn} 
+            className="flex-shrink-0 min-w-full md:min-w-[280px] md:max-w-[320px] h-14 rounded-2xl border-2 border-dashed border-border/50 flex items-center justify-center text-text-secondary hover:text-white hover:bg-surface-hover hover:border-border transition-all group shadow-sm hover:shadow-md"
+          >
+            <Plus className="w-5 h-5 mr-2 transition-transform group-hover:scale-110 group-hover:text-accent" />
+            <span className="font-medium text-sm tracking-wide">Add Section</span>
+          </button>
         </div>
       </div>
       

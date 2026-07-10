@@ -82,7 +82,7 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
     <div 
       ref={setNodeRef}
       style={style}
-      className={`flex flex-col flex-shrink-0 min-w-full md:min-w-[280px] md:max-w-[320px] bg-surface/40 backdrop-blur-3xl rounded-2xl p-3 sm:p-4 border border-border shadow-lg transition-all duration-300 ${isDragging ? 'opacity-50' : ''} ${!isMobileExpanded ? 'h-auto md:h-full md:max-h-full md:min-h-0' : 'h-[65vh] md:h-full max-h-[80vh] md:max-h-full min-h-0'}`}
+      className={`flex flex-col flex-shrink-0 min-w-full md:min-w-[280px] md:max-w-[320px] bg-surface/20 backdrop-blur-xl rounded-2xl p-3 sm:p-4 border border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 ${isDragging ? 'opacity-50 ring-2 ring-accent' : ''} ${!isMobileExpanded ? 'h-auto md:h-full md:max-h-full md:min-h-0' : 'h-[65vh] md:h-full max-h-[80vh] md:max-h-full min-h-0'}`}
     >
       <div className="flex items-center justify-between mb-4 px-1">
         <div 
@@ -119,7 +119,7 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
         </div>
         <button
           onClick={() => setIsAdding(true)}
-          className="text-text-secondary hover:text-text-primary hover:bg-surface-hover p-2 rounded-lg transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+          className="text-text-secondary hover:text-white hover:bg-accent p-2 rounded-lg transition-all min-w-[36px] min-h-[36px] flex items-center justify-center hover:shadow-lg hover:shadow-accent/20"
         >
           <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
         </button>
@@ -130,6 +130,12 @@ export const Column: React.FC<ColumnProps> = ({ column, tasks }) => {
           {tasks.map(task => (
             <Task key={task.id} task={task} columnTitle={column.title} />
           ))}
+          
+          {tasks.length === 0 && !isAdding && (
+            <div className="flex flex-col items-center justify-center h-28 text-text-secondary/40 border-2 border-dashed border-border/30 rounded-xl m-1 mt-2">
+              <span className="text-sm font-medium tracking-wide">Drop tasks here</span>
+            </div>
+          )}
         </SortableContext>
 
         {isAdding && (

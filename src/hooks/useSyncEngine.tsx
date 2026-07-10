@@ -323,51 +323,62 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Check which operations already exist to avoid unique constraint violations
       const opIds = payload.map((p: any) => p.id);
-      const { data: existingOps, error: checkError } = await supabaseRef.current
-        .from('operations')
-        .select('id')
-        .in('id', opIds);
+      let existingOps: any[] = [];
+      
+      // Chunk the GET request to avoid "URI Too Long" (which manifests as CORS ERR_FAILED)
+      for (let i = 0; i < opIds.length; i += 100) {
+        const chunk = opIds.slice(i, i + 100);
+        const { data: chunkExisting, error: checkError } = await supabaseRef.current
+          .from('operations')
+          .select('id')
+          .in('id', chunk);
 
-      if (checkError) {
-        console.error('[SYNC] Failed to check existing operations:', checkError);
-        setSyncStatus('error');
-        isSyncingRef.current = false;
-        return;
+        if (checkError) {
+          console.error('[SYNC] Failed to check existing operations for chunk:', checkError);
+          setSyncStatus('error');
+          isSyncingRef.current = false;
+          return;
+        }
+        if (chunkExisting) {
+          existingOps = [...existingOps, ...chunkExisting];
+        }
       }
 
       const existingIds = new Set(existingOps?.map(op => op.id) || []);
       const newOps = payload.filter((p: any) => !existingIds.has(p.id));
 
       if (newOps.length > 0) {
-        // Send operations to Supabase
-        const { error: insertError } = await supabaseRef.current
-          .from('operations')
-          .insert(newOps);
+        // Send operations to Supabase in chunks to avoid payload size limits
+        for (let i = 0; i < newOps.length; i += 100) {
+          const insertChunk = newOps.slice(i, i + 100);
+          const { error: insertError } = await supabaseRef.current
+            .from('operations')
+            .insert(insertChunk);
 
-        if (insertError) {
-          console.error('[SYNC] Failed to insert operations to Supabase:', insertError);
-          console.error('[SYNC] Payload that failed:', JSON.stringify(newOps, null, 2));
-          
-          // Identify permanent vs transient errors
-          // e.g. 42501 (RLS), 23... (Constraint violations), 22... (Data exceptions)
-          const errorCode = String(insertError?.code || '');
-          const isPermanentError = errorCode.startsWith('42') || errorCode.startsWith('23') || errorCode.startsWith('22');
-          
-          if (isPermanentError) {
-            for (const op of newOps) {
-              const doc = await db.operations.findOne({ selector: { id: op.id } }).exec();
-              if (doc) await doc.patch({ status: 'FAILED' });
+          if (insertError) {
+            console.error('[SYNC] Failed to insert operations chunk to Supabase:', insertError);
+            console.error('[SYNC] Chunk payload that failed:', JSON.stringify(insertChunk, null, 2));
+            
+            // Identify permanent vs transient errors
+            const errorCode = String(insertError?.code || '');
+            const isPermanentError = errorCode.startsWith('42') || errorCode.startsWith('23') || errorCode.startsWith('22');
+            
+            if (isPermanentError) {
+              for (const op of insertChunk) {
+                const doc = await db.operations.findOne({ selector: { id: op.id } }).exec();
+                if (doc) await doc.patch({ status: 'FAILED' });
+              }
+            } else {
+              // Transient error: keep PENDING and retry after 5 seconds
+              console.log('[SYNC] Transient error, scheduling retry...');
+              if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+              syncTimeoutRef.current = setTimeout(syncOperations, 5000);
             }
-          } else {
-            // Transient error: keep PENDING and retry after 5 seconds
-            console.log('[SYNC] Transient error, scheduling retry...');
-            if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-            syncTimeoutRef.current = setTimeout(syncOperations, 5000);
+            
+            setSyncStatus('error');
+            isSyncingRef.current = false;
+            return;
           }
-          
-          setSyncStatus('error');
-          isSyncingRef.current = false;
-          return;
         }
         
         // Track locally created ops to prevent notifying ourselves

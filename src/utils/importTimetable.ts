@@ -85,7 +85,7 @@ export const importDynamicTimetable = async (userId: string, timetableData: any[
           description: task.description || '',
           priority: task.priority || 'normal',
           labels: task.labels || [],
-          dueDate: '',
+          dueDate: task.dueDate || '',
           position: j * 1000,
           updatedAt: new Date().toISOString(),
           version: 1,

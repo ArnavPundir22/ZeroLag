@@ -29,7 +29,8 @@ Return ONLY valid JSON that perfectly matches this structure exactly, with no ma
         "title": "Course Name (Code)",
         "description": "Time: XX:XX - YY:YY\\nFaculty: Faculty Name\\nRoom: Room Number",
         "priority": "high",
-        "labels": ["Lecture", "Core"] 
+        "labels": ["Lecture", "Core"],
+        "dueDate": "YYYY-MM-DD"
       }
     ]
   }
@@ -40,6 +41,7 @@ Guidelines:
 - Guess priority (high for lectures/labs, low for breaks/self study).
 - Guess labels based on content (e.g. "Lecture", "Lab", "Break", "Placement").
 - Include all details visible in the image (Time, Faculty, Room).
+- Extract any deadline or due date mentioned and include it as "dueDate" (in ISO format YYYY-MM-DD), otherwise leave it as an empty string.
 - Do NOT wrap the JSON in \`\`\`json \`\`\`. Output just the raw array.
 `;
 

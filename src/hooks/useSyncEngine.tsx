@@ -145,25 +145,38 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const allBoardIds = Array.from(new Set([...remoteBoardIds, ...localBoardIds]));
 
         if (allBoardIds.length > 0) {
-          let query = supabase
-            .from('operations')
-            .select('*')
-            .in('board_id', allBoardIds)
-            .order('timestamp', { ascending: true });
+          let currentLastSync = lastSync;
+          let hasMore = true;
 
-          if (lastSync && lastSync !== '0') {
-            query = query.gt('timestamp', lastSync);
-          }
+          while (hasMore) {
+            let query = supabase
+              .from('operations')
+              .select('*')
+              .in('board_id', allBoardIds)
+              .order('timestamp', { ascending: true })
+              .limit(1000);
 
-          const { data: operations, error } = await query;
+            if (currentLastSync && currentLastSync !== '0') {
+              query = query.gt('timestamp', currentLastSync);
+            }
 
-          if (error) {
-            console.error('[SYNC] Failed to fetch operations:', error);
-          } else if (operations && operations.length > 0) {
-            console.log(`[SYNC] Fetched ${operations.length} missed operations`);
-            for (const op of operations) {
-              await handleRemoteOperation(op);
-              localStorage.setItem('last_sync_timestamp', op.timestamp);
+            const { data: operations, error } = await query;
+
+            if (error) {
+              console.error('[SYNC] Failed to fetch operations:', error);
+              break;
+            } else if (operations && operations.length > 0) {
+              console.log(`[SYNC] Fetched ${operations.length} missed operations`);
+              for (const op of operations) {
+                await handleRemoteOperation(op);
+                currentLastSync = op.timestamp;
+                localStorage.setItem('last_sync_timestamp', op.timestamp);
+              }
+              if (operations.length < 1000) {
+                hasMore = false;
+              }
+            } else {
+              hasMore = false;
             }
           }
         }
@@ -176,20 +189,32 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const bds = await db.boards.find().exec();
           const currentLocalIds = bds.map((b: any) => b.id);
           const allIds = Array.from(new Set([...currentRemoteIds, ...currentLocalIds]));
-          
           if (allIds.length > 0) {
-             const { data: ops } = await supabaseRef.current
-                .from('operations')
-                .select('*')
-                .in('board_id', allIds)
-                .gt('timestamp', lastSyncTime)
-                .order('timestamp', { ascending: true });
-             if (ops && ops.length > 0) {
-                console.log(`[SYNC] Background poll found ${ops.length} missed operations`);
-                for (const op of ops) {
-                   await handleRemoteOperation(op);
-                   localStorage.setItem('last_sync_timestamp', op.timestamp);
-                }
+             let currentFetchLastSync = lastSyncTime;
+             let hasMoreOps = true;
+             
+             while (hasMoreOps) {
+               const { data: ops } = await supabaseRef.current
+                  .from('operations')
+                  .select('*')
+                  .in('board_id', allIds)
+                  .gt('timestamp', currentFetchLastSync)
+                  .order('timestamp', { ascending: true })
+                  .limit(1000);
+
+               if (ops && ops.length > 0) {
+                  console.log(`[SYNC] Background poll found ${ops.length} missed operations`);
+                  for (const op of ops) {
+                     await handleRemoteOperation(op);
+                     currentFetchLastSync = op.timestamp;
+                     localStorage.setItem('last_sync_timestamp', op.timestamp);
+                  }
+                  if (ops.length < 1000) {
+                     hasMoreOps = false;
+                  }
+               } else {
+                 hasMoreOps = false;
+               }
              }
           }
         };
@@ -443,23 +468,34 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('[SYNC] Failed to upsert board_access:', upsertError);
       }
 
-      const { data: operations, error } = await supabaseRef.current
-        .from('operations')
-        .select('*')
-        .eq('board_id', boardId)
-        .order('timestamp', { ascending: true });
+      let currentJoinLastSync = '0';
+      let hasMoreJoinOps = true;
 
-      if (error) throw error;
+      while (hasMoreJoinOps) {
+        const { data: operations, error } = await supabaseRef.current
+          .from('operations')
+          .select('*')
+          .eq('board_id', boardId)
+          .gt('timestamp', currentJoinLastSync)
+          .order('timestamp', { ascending: true })
+          .limit(1000);
 
-      if (operations && operations.length > 0) {
-        console.log(`[SYNC] Replaying ${operations.length} operations for board ${boardId}`);
-        for (const op of operations) {
-          await handleRemoteOperation(op);
+        if (error) throw error;
+
+        if (operations && operations.length > 0) {
+          console.log(`[SYNC] Replaying ${operations.length} operations for board ${boardId}`);
+          for (const op of operations) {
+            await handleRemoteOperation(op);
+            currentJoinLastSync = op.timestamp;
+          }
+          if (operations.length < 1000) {
+            hasMoreJoinOps = false;
+          }
+        } else {
+          hasMoreJoinOps = false;
         }
-        return true;
       }
-
-      return false;
+      return true;
     } catch (err) {
       console.error('[SYNC] Failed to join remote board:', err);
       return false;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2, LogOut, Calendar as CalendarIcon, Layout, Video } from 'lucide-react';
+import { Menu, RefreshCw, AlertTriangle, CheckCircle2, Share2, Calendar as CalendarIcon, Layout, Video } from 'lucide-react';
 import { BoardFilter } from './BoardFilter';
 
 interface BoardHeaderProps {
@@ -22,14 +22,13 @@ interface BoardHeaderProps {
   syncStatus: string;
   handleMeetClick: () => void;
   handleShare: () => void;
-  signOut: () => void;
   setIsSidebarOpen: (isOpen: boolean) => void;
 }
 
 export const BoardHeader: React.FC<BoardHeaderProps> = ({
   boardTitle, tempTitle, setTempTitle, isEditingTitle, setIsEditingTitle, handleRenameSubmit,
   viewMode, setViewMode, filterPriorities, togglePriorityFilter, filterLabels, availableLabels, toggleLabelFilter,
-  user, onlineUsers, isOffline, syncStatus, handleMeetClick, handleShare, signOut, setIsSidebarOpen
+  user, onlineUsers, isOffline, syncStatus, handleMeetClick, handleShare, setIsSidebarOpen
 }) => {
   return (
     <header className="flex flex-col sm:flex-row sm:h-14 sm:items-center justify-between shrink-0 bg-background/80 backdrop-blur-md z-10 relative border-b border-border">
@@ -194,13 +193,6 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
               <Share2 className="w-4 h-4" />
               <span className="font-medium">Share</span>
             </button>
-            <button 
-              onClick={() => signOut()}
-              className="flex items-center justify-center min-w-[36px] min-h-[36px] gap-2 px-3 rounded-lg border border-border text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors"
-              title="Log Out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
           </div>
         </div>
       </div>
@@ -253,13 +245,6 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
             title="Share Project"
           >
             <Share2 className="w-4 h-4" />
-          </button>
-          <button 
-            onClick={() => signOut()}
-            className="flex items-center justify-center min-w-[32px] min-h-[32px] p-1.5 rounded-lg border border-border text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors"
-            title="Log Out"
-          >
-            <LogOut className="w-4 h-4" />
           </button>
         </div>
       </div>

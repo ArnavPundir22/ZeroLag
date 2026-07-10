@@ -4,16 +4,17 @@ import { useAppStore } from '../../store';
 import { useDatabase } from '../../db/DatabaseProvider';
 import { v4 as uuidv4 } from 'uuid';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { UserButton, useUser } from '@clerk/react';
+import { UserButton, useUser, useClerk } from '@clerk/react';
 import { useSyncContext } from '../../hooks/useSyncEngine';
 import { Modal } from '../ui/Modal';
 import { SettingsModal } from '../../features/settings/components/SettingsModal';
-import { Settings, Database, Sparkles, Loader2, Download, Info, HelpCircle, ShieldCheck } from 'lucide-react';
+import { Settings, Database, Sparkles, Loader2, Download, Info, HelpCircle, ShieldCheck, LogOut } from 'lucide-react';
 import { importTimetable, importDynamicTimetable } from '../../utils/importTimetable';
 import { parseTimetableImage } from '../../utils/aiTimetableParser';
 
 export const Sidebar: React.FC = () => {
   const { user } = useUser();
+  const { signOut } = useClerk();
 
   const currentBoardId = useAppStore(state => state.currentBoardId);
   const setCurrentBoardId = useAppStore(state => state.setCurrentBoardId);
@@ -361,6 +362,16 @@ export const Sidebar: React.FC = () => {
                 <ShieldCheck className="w-4 h-4" />
                 Terms & Conditions
               </Link>
+            </div>
+          </div>
+
+          <div>
+            <div className="text-text-secondary text-xs font-medium px-3 mb-2 uppercase tracking-wider">Account</div>
+            <div className="space-y-0.5">
+              <button onClick={() => signOut()} className="w-full flex items-center gap-3 px-3 py-3 sm:py-2 text-text-secondary hover:bg-red-500/10 hover:text-red-400 rounded-lg font-medium text-sm transition-colors">
+                <LogOut className="w-4 h-4" />
+                Log Out
+              </button>
             </div>
           </div>
         </nav>

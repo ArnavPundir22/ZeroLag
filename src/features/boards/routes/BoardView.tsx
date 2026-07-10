@@ -4,7 +4,7 @@ import { CheckCircle2 } from 'lucide-react';
 import { useDatabase } from '../../../db/DatabaseProvider';
 import { useAppStore } from '../../../store';
 import { Board } from '../components/Board';
-import { useClerk, useUser } from '@clerk/react';
+import { useUser } from '@clerk/react';
 import { useMultiplayer } from '../../../hooks/useMultiplayer';
 import { LiveCursors } from '../components/LiveCursors';
 import { CalendarView } from '../components/CalendarView';
@@ -24,7 +24,6 @@ export const BoardRouteWrapper = () => {
 };
 
 export const BoardView = () => {
-  const { signOut } = useClerk();
   const { user } = useUser();
   const currentBoardId = useAppStore(state => state.currentBoardId);
   const isOffline = useAppStore(state => state.isOffline);
@@ -183,7 +182,6 @@ export const BoardView = () => {
         syncStatus={syncStatus}
         handleMeetClick={handleMeetClick}
         handleShare={handleShare}
-        signOut={signOut}
         setIsSidebarOpen={setIsSidebarOpen}
       />
 

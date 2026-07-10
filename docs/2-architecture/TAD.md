@@ -34,8 +34,8 @@
 ### 2.1 Entry Point (`App.tsx`)
 Initializes the `DatabaseProvider` and `SyncProvider` context. Contains the main routing logic and renders global toast notifications.
 
-### 2.2 Board View (`KanbanBoard.tsx`)
-Subscribes to RxDB collections (`boards`, `columns`, `tasks`). Uses `@dnd-kit/core` `DndContext` wrapping the entire column grid. Handles optimistic UI updates natively.
+### 2.2 Board View (`KanbanBoard.tsx` & `BoardView.tsx`)
+Subscribes to RxDB collections (`boards`, `columns`, `tasks`). Uses `@dnd-kit/core` `DndContext` wrapping the entire column grid. Handles optimistic UI updates natively. Supports **Custom Phase Columns** allowing users to dynamically add, rename, reorder, and safely delete custom project phases, with all layout changes persisting locally via RxDB.
 
 ### 2.3 Task Details (`TaskDetailsPanel.tsx`)
 A heavily animated side-panel powered by `framer-motion`. Renders `ReactMarkdown` and supports file attachments. File attachments are converted to Base64 strings and stored directly in the IndexedDB document before syncing.

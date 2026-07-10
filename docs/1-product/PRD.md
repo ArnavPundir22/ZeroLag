@@ -57,6 +57,7 @@ Most productivity apps still rely heavily on server round trips. Users experienc
 ## 6. Functional Requirements (V1)
 - **Authentication**: Email login, Google OAuth, JWT Authentication.
 - **Board/Column/Task Management**: Full CRUD operations.
+- **Custom Phase Columns**: Users can dynamically create, rename, reorder, and safely delete custom project phases.
 - **Drag & Drop**: Instant visual feedback without loading spinners.
 - **Offline Mode**: 99% of app capabilities function offline.
 - **Sync Engine**: Background synchronization and conflict resolution (LWW).

@@ -8,6 +8,10 @@ let lastNotificationTime = 0;
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error("Critical Server Configuration Error: Missing Supabase URL or Anon Key. Application cannot start.");
+}
+
 const playNotificationSound = () => {
   const now = Date.now();
   if (now - lastNotificationTime < 2000) return; // Throttle to once every 2 seconds
@@ -66,7 +70,6 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleRemoteOperation = async (op: any) => {
     if (!db) return;
-    console.log('[SYNC] Received remote operation of type:', op.type);
 
     let collectionName = op.entity.toLowerCase();
     if (collectionName === 'chatmessages') collectionName = 'chatMessages';
@@ -122,7 +125,6 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (!mounted) return;
         supabaseRef.current = supabase;
-        console.log('[SYNC] Connected to Supabase serverless database');
 
         // Fetch missed operations
         const lastSync = localStorage.getItem('last_sync_timestamp') || '0';
@@ -166,7 +168,6 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
               console.error('[SYNC] Failed to fetch operations:', error);
               break;
             } else if (operations && operations.length > 0) {
-              console.log(`[SYNC] Fetched ${operations.length} missed operations`);
               for (const op of operations) {
                 await handleRemoteOperation(op);
                 currentLastSync = op.timestamp;
@@ -203,7 +204,6 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   .limit(1000);
 
                if (ops && ops.length > 0) {
-                  console.log(`[SYNC] Background poll found ${ops.length} missed operations`);
                   for (const op of ops) {
                      await handleRemoteOperation(op);
                      currentFetchLastSync = op.timestamp;
@@ -395,7 +395,6 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             } else {
               // Transient error: keep PENDING and retry after 5 seconds
-              console.log('[SYNC] Transient error, scheduling retry...');
               if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
               syncTimeoutRef.current = setTimeout(syncOperations, 5000);
             }
@@ -483,7 +482,6 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) throw error;
 
         if (operations && operations.length > 0) {
-          console.log(`[SYNC] Replaying ${operations.length} operations for board ${boardId}`);
           for (const op of operations) {
             await handleRemoteOperation(op);
             currentJoinLastSync = op.timestamp;

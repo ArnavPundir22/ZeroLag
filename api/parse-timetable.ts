@@ -72,16 +72,18 @@ Guidelines:
     
     return res.status(200).json(JSON.parse(cleanText));
   } catch (error: any) {
-    console.error("AI Parser Error:", error);
+    const correlationId = Math.random().toString(36).substring(2, 15);
+    console.error(`[Correlation ID: ${correlationId}] AI Parser Error:`, error);
+    
     if (error?.status === 429) {
-      return res.status(429).json({ error: "API Quota Exceeded. You have reached your Gemini API usage limit." });
+      return res.status(429).json({ error: "API Quota Exceeded. You have reached your Gemini API usage limit.", correlationId });
     }
     if (error?.status === 400) {
-      return res.status(400).json({ error: "Invalid API Key or Bad Request." });
+      return res.status(400).json({ error: "Invalid API Key or Bad Request.", correlationId });
     }
     if (error?.status === 503) {
-      return res.status(503).json({ error: "Google AI servers are currently overloaded." });
+      return res.status(503).json({ error: "Google AI servers are currently overloaded.", correlationId });
     }
-    return res.status(500).json({ error: error?.message || "Failed to parse the timetable image." });
+    return res.status(500).json({ error: "An unexpected internal error occurred. Please try again later.", correlationId });
   }
 }

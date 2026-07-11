@@ -39,8 +39,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           <div className="bg-black/20 border border-white/10 rounded-2xl p-2 flex gap-2">
             {[
               { id: 'light', icon: Sun, label: 'Light' },
-              { id: 'dark', icon: Moon, label: 'Dark' },
-              { id: 'system', icon: Monitor, label: 'System' }
+              { id: 'dark', icon: Moon, label: 'Dark' }
             ].map((t) => (
               <button
                 key={t.id}

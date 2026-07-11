@@ -156,15 +156,11 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const boards = await db.boards.find().exec();
         const localBoardIds = boards.map((b: any) => b.id);
         
-        // Anti-bug: If we have remote boards but 0 local boards, it means IndexedDB was cleared but localStorage wasn't.
         if (remoteBoardIds.length > 0 && localBoardIds.length === 0 && lastSync !== '0') {
            console.log('[SYNC DEBUG] Stale localStorage detected! Resetting sync to 0 to download all data.');
            lastSync = '0';
            localStorage.removeItem('last_sync_timestamp');
         }
-        // Force full resync for this session to fix any missing data
-        lastSync = '0';
-        localStorage.removeItem('last_sync_timestamp');
         
         const allBoardIds = Array.from(new Set([...remoteBoardIds, ...localBoardIds]));
         console.log('[SYNC DEBUG] allBoardIds to sync:', allBoardIds);

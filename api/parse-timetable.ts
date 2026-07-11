@@ -1,6 +1,11 @@
 import { GoogleGenAI } from '@google/genai';
 import { verifyToken } from '@clerk/backend';
 
+// Simple in-memory rate limiter (per lambda instance)
+const rateLimitMap = new Map<string, { count: number, resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 5;
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -12,10 +17,30 @@ export default async function handler(req: any, res: any) {
   }
   
   const token = authHeader.split(' ')[1];
+  let decodedToken: any;
   try {
-    await verifyToken(token, { secretKey: process.env.CLERK_SECRET_KEY });
+    decodedToken = await verifyToken(token, { secretKey: process.env.CLERK_SECRET_KEY });
   } catch (err) {
     return res.status(401).json({ error: 'Invalid Token' });
+  }
+
+  // Rate Limiting Logic
+  const userId = decodedToken.sub;
+  const now = Date.now();
+  const userRateLimit = rateLimitMap.get(userId) || { count: 0, resetTime: now + RATE_LIMIT_WINDOW_MS };
+
+  if (now > userRateLimit.resetTime) {
+    // Reset window
+    userRateLimit.count = 1;
+    userRateLimit.resetTime = now + RATE_LIMIT_WINDOW_MS;
+  } else {
+    userRateLimit.count++;
+  }
+  
+  rateLimitMap.set(userId, userRateLimit);
+
+  if (userRateLimit.count > MAX_REQUESTS_PER_WINDOW) {
+    return res.status(429).json({ error: 'Too Many Requests. Please wait a minute before trying again.' });
   }
 
   const { base64Image, mimeType } = req.body || {};

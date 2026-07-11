@@ -492,7 +492,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [db, isOffline]);
 
-  const joinRemoteBoard = async (boardId: string): Promise<boolean> => {
+  const joinRemoteBoard = async (boardId: string): Promise<boolean | string> => {
     if (!supabaseRef.current || !db) return false;
 
     try {
@@ -500,7 +500,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error: upsertError } = await supabaseRef.current.from('board_access').upsert({ board_id: boardId, user_id: user?.id });
       if (upsertError) {
         console.error('[SYNC] Failed to upsert board_access:', upsertError);
-        throw upsertError;
+        throw new Error(`Supabase Error [${upsertError.code}]: ${upsertError.message}`);
       }
 
       let currentJoinLastSync = '0';
@@ -530,9 +530,9 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
       return true;
-    } catch (err) {
+    } catch (err: any) {
       console.error('[SYNC] Failed to join remote board:', err);
-      return false;
+      return err.message || 'Unknown error occurred while joining.';
     }
   };
 

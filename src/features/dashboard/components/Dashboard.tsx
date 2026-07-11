@@ -95,10 +95,12 @@ export const Dashboard: React.FC = () => {
       return;
     }
 
-    const success = await joinRemoteBoard(joinCode.trim());
-    if (success) {
+    const result = await joinRemoteBoard(joinCode.trim());
+    if (result === true) {
       setJoinCode('');
       navigate(`/b/${joinCode.trim()}`);
+    } else if (typeof result === 'string') {
+      setJoinError(result);
     } else {
       setJoinError('Project not found or invalid code.');
     }

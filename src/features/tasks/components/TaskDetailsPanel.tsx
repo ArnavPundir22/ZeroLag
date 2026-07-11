@@ -234,7 +234,7 @@ export const TaskDetailsPanel: React.FC = () => {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: '100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 md:top-4 md:bottom-4 md:right-4 h-[92vh] md:h-auto w-full md:w-[480px] bg-surface/80 backdrop-blur-2xl border border-white/10 z-50 flex flex-col shadow-2xl rounded-t-3xl md:rounded-3xl overflow-hidden"
+            className="fixed bottom-0 md:top-4 md:bottom-4 md:right-4 h-[92vh] md:h-auto w-full md:w-[480px] bg-surface/90 backdrop-blur-3xl border border-border z-50 flex flex-col shadow-soft-lg dark:shadow-2xl rounded-t-2xl md:rounded-2xl overflow-hidden"
           >
             {isMobile && (
               <div className="w-full flex justify-center py-3 shrink-0">
@@ -254,7 +254,7 @@ export const TaskDetailsPanel: React.FC = () => {
                 </button>
                 <button 
                   onClick={() => setSelectedTaskId(null)}
-                  className="text-text-secondary hover:text-white p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl hover:bg-white/10 transition-colors"
+                  className="text-text-secondary hover:text-text-primary p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl hover:bg-surface-hover transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -274,7 +274,7 @@ export const TaskDetailsPanel: React.FC = () => {
                       updateField('title', e.target.value);
                     }}
                     placeholder="Task Title"
-                    className="w-full bg-transparent text-2xl font-bold text-white focus:outline-none resize-none placeholder-text-secondary/50 leading-tight"
+                    className="w-full bg-transparent text-2xl font-bold text-text-primary focus:outline-none resize-none placeholder-text-secondary/50 leading-tight"
                     rows={2}
                   />
                 </div>
@@ -282,17 +282,17 @@ export const TaskDetailsPanel: React.FC = () => {
                 <div className="flex items-center gap-6 px-6 pt-2 pb-4 border-b border-border/50">
                   <button
                     onClick={() => setActiveTab('details')}
-                    className={`pb-2 text-sm font-semibold transition-colors relative ${activeTab === 'details' ? 'text-accent' : 'text-text-secondary hover:text-white'}`}
+                    className={`pb-2 text-sm font-semibold transition-colors relative ${activeTab === 'details' ? 'text-accent' : 'text-text-secondary hover:text-text-primary'}`}
                   >
                     Details
                     {activeTab === 'details' && <motion.div layoutId="activeTab" className="absolute -bottom-4 left-0 right-0 h-[2px] bg-accent" />}
                   </button>
                   <button
                     onClick={() => setActiveTab('comments')}
-                    className={`pb-2 text-sm font-semibold transition-colors relative flex items-center gap-1.5 ${activeTab === 'comments' ? 'text-accent' : 'text-text-secondary hover:text-white'}`}
+                    className={`pb-2 text-sm font-semibold transition-colors relative flex items-center gap-1.5 ${activeTab === 'comments' ? 'text-accent' : 'text-text-secondary hover:text-text-primary'}`}
                   >
                     Comments
-                    <span className="bg-white/10 text-[10px] px-1.5 py-0.5 rounded-full text-white">{comments.length}</span>
+                    <span className="bg-border text-[10px] px-1.5 py-0.5 rounded-full text-text-primary">{comments.length}</span>
                     {activeTab === 'comments' && <motion.div layoutId="activeTab" className="absolute -bottom-4 left-0 right-0 h-[2px] bg-accent" />}
                   </button>
                 </div>

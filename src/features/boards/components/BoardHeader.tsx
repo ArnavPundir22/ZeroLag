@@ -73,16 +73,16 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
 
           {/* Desktop View Switcher & Filter */}
           <div className="hidden sm:flex items-center gap-2">
-            <div className="flex p-1 bg-black/20 border border-white/5 rounded-lg mr-2">
+            <div className="flex p-1 bg-surface border border-border rounded-lg mr-2">
               <button
                 onClick={() => setViewMode('board')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-md transition-colors ${viewMode === 'board' ? 'bg-surface text-white shadow' : 'text-text-secondary hover:text-white'}`}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-md transition-colors ${viewMode === 'board' ? 'bg-surface-hover text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
               >
                 <Layout className="w-3.5 h-3.5" /> Board
               </button>
               <button
                 onClick={() => setViewMode('calendar')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-surface text-white shadow' : 'text-text-secondary hover:text-white'}`}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-surface-hover text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
               >
                 <CalendarIcon className="w-3.5 h-3.5" /> Calendar
               </button>
@@ -209,16 +209,16 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
       {/* Mobile Secondary Row: Tools & Actions */}
       <div className="sm:hidden flex items-center justify-between px-3 pb-3 gap-2 overflow-x-auto hide-scrollbar">
         <div className="flex items-center gap-2 shrink-0">
-          <div className="flex p-1 bg-black/20 border border-white/5 rounded-lg">
+          <div className="flex p-1 bg-surface border border-border rounded-lg">
             <button
               onClick={() => setViewMode('board')}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-md transition-colors ${viewMode === 'board' ? 'bg-surface text-white shadow' : 'text-text-secondary hover:text-white'}`}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-md transition-colors ${viewMode === 'board' ? 'bg-surface-hover text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
             >
               <Layout className="w-3.5 h-3.5" /> Board
             </button>
             <button
               onClick={() => setViewMode('calendar')}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-surface text-white shadow' : 'text-text-secondary hover:text-white'}`}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-surface-hover text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
             >
               <CalendarIcon className="w-3.5 h-3.5" /> Calendar
             </button>

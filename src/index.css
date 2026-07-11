@@ -30,13 +30,13 @@
   
   :root.light {
     --bg-color: #f8fafc;
-    --surface-color: rgba(0, 0, 0, 0.02);
-    --surface-hover-color: rgba(0, 0, 0, 0.06);
-    --border-color: rgba(0, 0, 0, 0.1);
-    --accent-color: #6366f1;
-    --accent-hover-color: #4f46e5;
+    --surface-color: #ffffff;
+    --surface-hover-color: #f1f5f9;
+    --border-color: #e2e8f0;
+    --accent-color: #0f172a;
+    --accent-hover-color: #000000;
     --text-primary-color: #0f172a;
-    --text-secondary-color: #64748b;
+    --text-secondary-color: #475569;
     color-scheme: light;
   }
 
@@ -86,22 +86,22 @@
 }
 
 @layer utilities {
-  .markdown-preview h1 { @apply text-2xl font-bold mt-4 mb-2 text-white; }
-  .markdown-preview h2 { @apply text-xl font-bold mt-4 mb-2 text-white; }
-  .markdown-preview h3 { @apply text-lg font-bold mt-3 mb-2 text-white; }
+  .markdown-preview h1 { @apply text-2xl font-bold mt-4 mb-2 text-text-primary; }
+  .markdown-preview h2 { @apply text-xl font-bold mt-4 mb-2 text-text-primary; }
+  .markdown-preview h3 { @apply text-lg font-bold mt-3 mb-2 text-text-primary; }
   .markdown-preview p { @apply mb-3 leading-relaxed text-text-primary; }
   .markdown-preview ul { @apply list-disc list-inside mb-3 space-y-1 text-text-primary; }
   .markdown-preview ol { @apply list-decimal list-inside mb-3 space-y-1 text-text-primary; }
   .markdown-preview a { @apply text-accent hover:underline; }
-  .markdown-preview blockquote { @apply border-l-4 border-accent pl-4 italic my-4 text-text-secondary bg-white/5 py-2 rounded-r-lg; }
-  .markdown-preview code { @apply bg-black/40 px-1.5 py-0.5 rounded text-xs font-mono text-accent; }
-  .markdown-preview pre { @apply bg-black/60 p-3 rounded-lg overflow-x-auto mb-4 border border-white/10; }
+  .markdown-preview blockquote { @apply border-l-4 border-accent pl-4 italic my-4 text-text-secondary bg-surface-hover py-2 rounded-r-lg; }
+  .markdown-preview code { @apply bg-surface-hover px-1.5 py-0.5 rounded text-xs font-mono text-accent; }
+  .markdown-preview pre { @apply bg-surface-hover p-3 rounded-lg overflow-x-auto mb-4 border border-border; }
   .markdown-preview pre code { @apply bg-transparent p-0 text-text-primary; }
   .markdown-preview table { @apply w-full text-left border-collapse mb-4; }
-  .markdown-preview th { @apply border-b border-border p-2 font-semibold text-white; }
+  .markdown-preview th { @apply border-b border-border p-2 font-semibold text-text-primary; }
   .markdown-preview td { @apply border-b border-border/50 p-2; }
   .markdown-preview hr { @apply border-t border-border my-4; }
-  .markdown-preview strong { @apply font-bold text-white; }
+  .markdown-preview strong { @apply font-bold text-text-primary; }
   .markdown-preview em { @apply italic; }
 
   /* Hide scrollbar for containers that use custom-scrollbar */
@@ -111,5 +111,13 @@
   .custom-scrollbar {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
+  }
+  
+  .shadow-soft {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  }
+  
+  .shadow-soft-lg {
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
   }
 }

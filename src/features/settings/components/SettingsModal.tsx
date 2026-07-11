@@ -36,7 +36,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         {/* Appearance Section */}
         <section>
           <h3 className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-3">Appearance</h3>
-          <div className="bg-black/20 border border-white/10 rounded-2xl p-2 flex gap-2">
+          <div className="bg-surface border border-border rounded-xl p-2 grid grid-cols-2 gap-2 shadow-sm">
             {[
               { id: 'light', icon: Sun, label: 'Light' },
               { id: 'dark', icon: Moon, label: 'Dark' }
@@ -44,10 +44,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               <button
                 key={t.id}
                 onClick={() => setTheme(t.id as any)}
-                className={`flex-1 flex flex-col items-center justify-center gap-2 py-3 rounded-xl transition-all ${
+                className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all cursor-pointer ${
                   theme === t.id 
-                    ? 'bg-accent shadow-[0_0_15px_rgba(99,102,241,0.3)] text-white' 
-                    : 'text-text-secondary hover:bg-white/5 hover:text-white'
+                    ? 'border-accent bg-accent text-white shadow-md' 
+                    : 'border-transparent bg-transparent text-text-secondary hover:bg-surface-hover hover:text-text-primary'
                 }`}
               >
                 <t.icon className="w-5 h-5" />
@@ -60,14 +60,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         {/* Sync Engine Section */}
         <section>
           <h3 className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-3">Sync Engine</h3>
-          <div className="bg-black/20 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
+          <div className="bg-surface border border-border rounded-xl p-4 flex flex-col gap-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isOnline ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
                   {isOnline ? <Wifi className="w-5 h-5" /> : <WifiOff className="w-5 h-5" />}
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white">Network Status</h4>
+                  <h4 className="text-sm font-bold text-text-primary">Network Status</h4>
                   <p className="text-xs text-text-secondary">{isOnline ? 'Connected' : 'Offline Mode'}</p>
                 </div>
               </div>
@@ -76,7 +76,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </span>
             </div>
 
-            <div className="h-px bg-white/10 w-full" />
+            <div className="h-px bg-border w-full" />
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -84,7 +84,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <RefreshCw className={`w-5 h-5 ${status === 'syncing' ? 'animate-spin' : ''}`} />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white">Sync Status</h4>
+                  <h4 className="text-sm font-bold text-text-primary">Sync Status</h4>
                   <p className="text-xs text-text-secondary capitalize">{status}</p>
                 </div>
               </div>
@@ -124,24 +124,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             className={`w-full border rounded-2xl p-4 flex items-center justify-between transition-all ${
               notificationsEnabled 
                 ? 'bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20' 
-                : 'bg-black/20 border-white/10 hover:bg-white/5'
+                : 'bg-surface border-border hover:bg-surface-hover'
             }`}
           >
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                notificationsEnabled ? 'bg-blue-500/20 text-blue-400' : 'bg-white/10 text-text-secondary'
+                notificationsEnabled ? 'bg-blue-500/20 text-blue-400' : 'bg-surface-hover text-text-secondary'
               }`}>
                 {notificationsEnabled ? <Bell className="w-5 h-5" /> : <BellOff className="w-5 h-5" />}
               </div>
               <div className="text-left">
-                <h4 className="text-sm font-bold text-white">Audio & Toasts</h4>
+                <h4 className="text-sm font-bold text-text-primary">Audio & Toasts</h4>
                 <p className="text-xs text-text-secondary">
                   {notificationsEnabled ? 'Alerts are enabled' : 'Alerts are disabled'}
                 </p>
               </div>
             </div>
             <div className={`w-11 h-6 rounded-full transition-colors flex items-center px-1 ${
-              notificationsEnabled ? 'bg-blue-500' : 'bg-white/10'
+              notificationsEnabled ? 'bg-blue-500' : 'bg-border'
             }`}>
               <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300 ${
                 notificationsEnabled ? 'translate-x-5' : 'translate-x-0'

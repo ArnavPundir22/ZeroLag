@@ -42,8 +42,10 @@ export const TaskAttachments: React.FC<TaskAttachmentsProps> = ({ task, handleFi
               </div>
               <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
                 <a 
-                  href={file.data} 
+                  href={file.data.startsWith('http') ? `${file.data}?download=${encodeURIComponent(file.name)}` : file.data} 
                   download={file.name}
+                  target="_blank"
+                  rel="noreferrer"
                   className="p-1.5 text-text-secondary hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                 >
                   <Download className="w-4 h-4" />

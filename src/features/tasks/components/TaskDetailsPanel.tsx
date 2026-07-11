@@ -11,7 +11,10 @@ import { TaskLabels } from './TaskLabels';
 import { TaskDescription } from './TaskDescription';
 import { TaskAttachments } from './TaskAttachments';
 import { TaskComments } from './TaskComments';
+import { useSyncContext } from '../../../hooks/useSyncEngine';
+
 export const TaskDetailsPanel: React.FC = () => {
+  const { supabaseClient, isOffline } = useSyncContext();
   const selectedTaskId = useAppStore(state => state.selectedTaskId);
   const setSelectedTaskId = useAppStore(state => state.setSelectedTaskId);
   const currentBoardId = useAppStore(state => state.currentBoardId);
@@ -145,39 +148,59 @@ export const TaskDetailsPanel: React.FC = () => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const base64Data = event.target?.result as string;
+    if (isOffline || !supabaseClient) {
+      alert('You must be online to upload attachments.');
+      return;
+    }
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${uuidv4()}.${fileExt}`;
+    const filePath = `${task.id}/${fileName}`;
+    
+    try {
+      const { error: uploadError } = await supabaseClient.storage
+        .from('task-attachments')
+        .upload(filePath, file);
+        
+      if (uploadError) {
+        console.error('Supabase upload failed:', uploadError);
+        alert('Failed to upload file to cloud.');
+        return;
+      }
+      
+      const { data } = supabaseClient.storage
+        .from('task-attachments')
+        .getPublicUrl(filePath);
+        
+      const publicUrl = data.publicUrl;
+
       const newAttachment = {
         id: uuidv4(),
         name: file.name,
         size: file.size,
         mimeType: file.type,
-        data: base64Data,
+        data: publicUrl,
       };
 
-      try {
-        const doc = await db.tasks.findOne({ selector: { id: task.id } }).exec();
-        if (doc) {
-          const currentAttachments = doc.attachments || [];
-          await doc.patch({
-            attachments: [...currentAttachments, newAttachment],
-            updatedAt: new Date().toISOString()
-          });
+      const doc = await db.tasks.findOne({ selector: { id: task.id } }).exec();
+      if (doc) {
+        const currentAttachments = doc.attachments || [];
+        await doc.patch({
+          attachments: [...currentAttachments, newAttachment],
+          updatedAt: new Date().toISOString()
+        });
 
-          await db.activities.insert({
-            id: uuidv4(),
-            taskId: task.id,
-            type: 'uploaded',
-            description: `Attached file ${file.name}`,
-            timestamp: new Date().toISOString()
-          });
-        }
-      } catch (err) {
-        console.error('Failed to upload file:', err);
+        await db.activities.insert({
+          id: uuidv4(),
+          taskId: task.id,
+          type: 'uploaded',
+          description: `Attached file ${file.name}`,
+          timestamp: new Date().toISOString()
+        });
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Failed to process upload:', err);
+    }
   };
   
   const handleRemoveAttachment = async (attachmentId: string) => {

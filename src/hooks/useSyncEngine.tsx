@@ -500,6 +500,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error: upsertError } = await supabaseRef.current.from('board_access').upsert({ board_id: boardId, user_id: user?.id });
       if (upsertError) {
         console.error('[SYNC] Failed to upsert board_access:', upsertError);
+        throw upsertError;
       }
 
       let currentJoinLastSync = '0';

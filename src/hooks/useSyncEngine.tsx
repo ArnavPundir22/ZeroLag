@@ -315,7 +315,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSyncStatus('syncing');
 
       const pendingOps = await db.operations.find({
-        selector: { status: 'PENDING' }
+        selector: { status: { $in: ['PENDING', 'FAILED'] } }
       }).exec();
 
       if (pendingOps.length === 0) {

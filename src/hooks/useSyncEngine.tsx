@@ -337,10 +337,15 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const payload = [];
       for (const op of pendingOps) {
-        if (op.payload && op.payload.length > 10 * 1024 * 1024) {
-           console.error('[SYNC] Purging massive stuck operation (over 10MB limit)', op.id);
-           const doc = await db.operations.findOne({ selector: { id: op.id } }).exec();
-           if (doc) await doc.remove();
+        const payloadStr = typeof op.payload === 'string' ? op.payload : JSON.stringify(op.payload || {});
+        if (payloadStr.length > 5 * 1024 * 1024) {
+           console.error('[SYNC] Purging massive stuck operation', op.id);
+           try {
+             const doc = await db.operations.findOne({ selector: { id: op.id } }).exec();
+             if (doc) await doc.remove();
+           } catch (e) {
+             console.error('Failed to remove doc', e);
+           }
            continue; // Skip it completely
         }
         

@@ -28,7 +28,8 @@ export const parseTimetableImage = async (file: File, token: string): Promise<an
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error || "Failed to parse the timetable image.");
+    const errorMsg = data.details ? `${data.error}: ${data.details}` : data.error;
+    throw new Error(errorMsg || "Failed to parse the timetable image.");
   }
 
   return data;

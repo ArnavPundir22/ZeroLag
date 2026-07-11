@@ -24,8 +24,11 @@ export default async function handler(req: any, res: any) {
   let decodedToken: any;
   try {
     decodedToken = await verifyToken(token, { secretKey: process.env.CLERK_SECRET_KEY });
-  } catch (err) {
-    return res.status(401).json({ error: 'Invalid Token' });
+  } catch (err: any) {
+    return res.status(401).json({ 
+      error: 'Invalid Token',
+      details: err.message || String(err)
+    });
   }
 
   // Rate Limiting Logic

@@ -41,11 +41,12 @@ No loading spinners. No network dependency. Just pure, instant task management.
 - **🔄 Offline-First Sync Engine:** Event-sourced operation logging that batches and syncs mutations gracefully in the background the moment you reconnect.
 - **🤝 Real-Time Collaboration & Presence:** Powered by Supabase Realtime WebSockets to instantly broadcast changes and display live collaborator avatars and cursors.
 - **🖐️ Optimized Drag & Drop:** Complex, nested drag-and-drop mechanics tailored for both desktop mice and mobile touch screens using `@dnd-kit`.
-- **✨ AI Magic Import:** Utilize the Gemini Vision API to instantly parse images of physical whiteboards or written timetables into digital tasks.
+- **✨ AI Magic Import:** Utilize the Gemini Vision API (secured via Vercel Serverless proxy) to instantly parse images of physical whiteboards or written timetables into digital tasks.
 - **🎥 1-Click Aurameet Video Conferencing:** Seamlessly launch ephemeral, zero-log video meeting rooms directly from your project board, fully optimized for PWAs.
 - **📱 Progressive Web App (PWA):** Fully installable mobile app experience. Works offline, launches in full-screen standalone mode, and handles deep links perfectly.
-- **🎨 Premium Mesh-Gradient Glassmorphism:** A high-end, modern UI built with Tailwind CSS, featuring rich dark-mode interfaces, fluid animations, and stunning project cards.
+- **🎨 Premium Mesh-Gradient Glassmorphism:** A high-end, modern UI built with Tailwind CSS, featuring rich dark-mode interfaces, fluid animations, dynamic initials project avatars, and fully keyboard-accessible search.
 - **🚀 Production-Ready FSD Architecture:** Clean Feature-Sliced Design (FSD) modular architecture, Edge authentication with Clerk, strict Row-Level Security (RLS) policies, and highly optimized reactive subscriptions.
+- **👥 Task Assignments:** Seamlessly assign tasks to team members for improved project accountability and tracking.
 
 ---
 
@@ -103,20 +104,25 @@ graph TD
     D -->|Realtime WebSockets| C
     A -->|JWT Edge Auth| E[Clerk]
     E -.->|Token Verification| D
+    A -->|AI Requests| F[Vercel Serverless API]
+    F -->|Secure Proxy| G[Gemini API]
 
     classDef frontend fill:#1e1e1e,stroke:#00f3ff,stroke-width:2px,color:#fff;
     classDef database fill:#0a0a19,stroke:#ff00ea,stroke-width:2px,color:#fff;
     classDef engine fill:#2d1b4e,stroke:#9d4edd,stroke-width:2px,color:#fff;
+    classDef serverless fill:#ff5722,stroke:#ff9800,stroke-width:2px,color:#fff;
     
     class A frontend
     class B,D database
     class C engine
+    class F serverless
 ```
 
 - **Frontend & UI:** React 19, Tailwind CSS v4, Framer Motion, Lucide Icons, DnD-Kit
 - **Local Database:** RxDB, Dexie (IndexedDB)
 - **Cloud Backend:** Supabase (PostgreSQL, Realtime, RLS)
 - **Authentication:** Clerk (Edge Networking, JWT generation)
+- **Serverless Infrastructure:** Vercel Serverless Functions (`api/` routes)
 - **AI Integrations:** Google Gemini API
 - **Build Tooling:** Vite, TypeScript, Oxlint
 
@@ -125,5 +131,8 @@ graph TD
 ## 🔒 Security & Privacy Guarantee
 
 ZeroLag utilizes strict cryptographic verification for all data access. When you log in via Clerk, a specialized JWT is generated that PostgreSQL (Supabase) decodes natively. Row-Level Security (RLS) policies are evaluated at the database engine level, ensuring that it is mathematically impossible for users to access or sync workspace data they have not been explicitly granted access to.
+
+**Secrets Management:** 
+All sensitive credentials, including database connection strings and AI API keys (e.g., `GEMINI_API_KEY`), are strictly managed via environment variables (`.env`) and are **never** exposed to the client-side browser. Third-party API calls are securely proxied through Vercel Serverless Functions.
 
 > **⚠️ Security Warning:** If any sensitive credentials (API keys, database URLs, etc.) were previously hardcoded in the source code before migrating to `.env` variables, those values are still present in your Git history. You must **immediately rotate** any previously hardcoded secrets to prevent unauthorized access.

@@ -42,6 +42,13 @@ graph TD
     UI -- "Login Request" --> IdP
     IdP -- "Returns Session Token" --> UI
     
+    subgraph Serverless ["Vercel Serverless"]
+        API["api/parse-timetable"]
+    end
+    
+    UI -- "Uploads Image + Auth" --> API
+    API -- "Secure Server-to-Server" --> Gemini[("Gemini API")]
+    
     LocalDB -- "Emits Observables" --> UI
     LocalDB -- "Triggers Sync" --> Engine
     
@@ -69,3 +76,7 @@ graph TD
 ### 4.3 Remote Backend & Database (Supabase)
 - **Role**: Acts as the central "Source of Truth" and the event-broadcaster for all connected peers.
 - **Authorization**: Enforced exclusively via PostgreSQL Row Level Security (RLS) using the Clerk JWT context.
+
+### 4.4 Serverless Infrastructure (Vercel)
+- **Role**: Secure API proxy for third-party services (e.g., Google Gemini AI).
+- **Implementation**: Edge/Serverless API routes (`api/*`) run strictly on the backend. This allows ZeroLag to inject sensitive environment variables (like `GEMINI_API_KEY`) into requests without ever exposing them to the client-side browser payload.

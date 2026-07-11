@@ -66,3 +66,21 @@ ZeroLag allows users to invite collaborators via a "Project Code" (the Board ID)
 - Board IDs are standard **UUIDv4** strings.
 - UUIDv4 strings are 128-bit numbers, meaning they are cryptographically impossible to guess.
 - Because the ID cannot be guessed, treating the ID itself as a bearer token for joining a project is a secure model (similar to Google Drive "Anyone with the link").
+
+---
+
+## 4. Secrets Management & API Proxying
+ZeroLag strictly isolates sensitive credentials from the client-side browser context to prevent leakage and unauthorized access.
+
+### Environment Variables
+- **`.env.example`**: Committed to version control. It lists required variable keys but leaves sensitive values blank.
+- **`.env` / `.env.local`**: Excluded from Git via `.gitignore`. Contains the actual API keys and database connection strings.
+
+### Vercel Serverless Proxying
+To prevent exposing high-value credentials like the `GEMINI_API_KEY` to users inspecting network traffic, ZeroLag routes requests requiring these keys through backend serverless functions.
+1. The React app POSTs data to `api/parse-timetable.ts`.
+2. The serverless function verifies the user's session (using Clerk API keys securely available only on the backend).
+3. The serverless function injects the `GEMINI_API_KEY` and forwards the request to Google.
+4. The response is parsed and sent back to the client.
+
+This architecture ensures that malicious users cannot extract API keys from the application bundle to make their own unauthenticated requests.

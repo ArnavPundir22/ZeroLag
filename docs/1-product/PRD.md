@@ -59,6 +59,7 @@ Most productivity apps still rely heavily on server round trips. Users experienc
 - **Board/Column/Task Management**: Full CRUD operations.
 - **Custom Phase Columns**: Users can dynamically create, rename, reorder, and safely delete custom project phases.
 - **Drag & Drop**: Instant visual feedback without loading spinners.
+- **Task Assignment**: Assign tasks to team members directly from the UI.
 - **Offline Mode**: 99% of app capabilities function offline.
 - **Sync Engine**: Background synchronization and conflict resolution (LWW).
-- **AI Magic Import**: Upload a schedule image and generate a Kanban board using AI.
+- **AI Magic Import**: Upload a schedule image and generate a Kanban board using AI (Requests are proxied securely through a Vercel Serverless Function to protect API keys).

@@ -75,7 +75,8 @@ export const Task: React.FC<TaskProps> = ({ task, columnTitle }) => {
             </div>
           )}
 
-          <div className="flex gap-2 mt-3 items-center flex-wrap">
+          <div className="flex items-center justify-between gap-2 mt-3 flex-wrap w-full">
+            <div className="flex items-center gap-2 flex-wrap">
             {task.priority && (
               <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border ${
                 task.priority === 'urgent' ? 'text-red-400 border-red-500/50 shadow-[0_0_8px_rgba(248,113,113,0.2)] bg-red-500/10' :
@@ -136,8 +137,9 @@ export const Task: React.FC<TaskProps> = ({ task, columnTitle }) => {
               
               return null;
             })()}
+            </div>
             
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="flex items-center gap-2 shrink-0">
               {task.assignee && (
                 <div className="flex items-center gap-1 text-[10px] text-accent bg-accent/10 px-1.5 py-0.5 rounded-md border border-accent/20">
                   <User className="w-3 h-3" />

@@ -7,10 +7,11 @@ export interface OfflineFile {
 
 const DB_NAME = 'zerolag_offline_storage';
 const STORE_NAME = 'files';
+const DELETE_STORE_NAME = 'pending_deletes';
 
 const getDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(DB_NAME, 2);
     
     request.onerror = () => {
       console.error('Failed to open IndexedDB:', request.error);
@@ -25,6 +26,9 @@ const getDB = (): Promise<IDBDatabase> => {
       const db = (event.target as IDBOpenDBRequest).result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(DELETE_STORE_NAME)) {
+        db.createObjectStore(DELETE_STORE_NAME, { keyPath: 'path' });
       }
     };
   });
@@ -72,5 +76,44 @@ export const deleteOfflineFile = async (id: string): Promise<void> => {
       console.error('Failed to delete offline file:', request.error);
       reject(request.error);
     };
+  });
+};
+
+export const queueCloudFileForDeletion = async (path: string): Promise<void> => {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DELETE_STORE_NAME, 'readwrite');
+    const store = tx.objectStore(DELETE_STORE_NAME);
+    const request = store.put({ path, timestamp: Date.now() });
+    
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+};
+
+export const getPendingDeletes = async (): Promise<string[]> => {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DELETE_STORE_NAME, 'readonly');
+    const store = tx.objectStore(DELETE_STORE_NAME);
+    const request = store.getAll();
+    
+    request.onsuccess = () => {
+      const result = request.result || [];
+      resolve(result.map(item => item.path));
+    };
+    request.onerror = () => reject(request.error);
+  });
+};
+
+export const removePendingDelete = async (path: string): Promise<void> => {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DELETE_STORE_NAME, 'readwrite');
+    const store = tx.objectStore(DELETE_STORE_NAME);
+    const request = store.delete(path);
+    
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
   });
 };

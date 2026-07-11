@@ -11,7 +11,7 @@ import { TaskLabels } from './TaskLabels';
 import { TaskDescription } from './TaskDescription';
 import { TaskAttachments } from './TaskAttachments';
 import { TaskComments } from './TaskComments';
-import { saveOfflineFile } from '../../../db/offlineStorage';
+import { saveOfflineFile, deleteOfflineFile, queueCloudFileForDeletion } from '../../../db/offlineStorage';
 
 export const TaskDetailsPanel: React.FC = () => {
   const selectedTaskId = useAppStore(state => state.selectedTaskId);
@@ -129,6 +129,18 @@ export const TaskDetailsPanel: React.FC = () => {
       try {
         const doc = await db.tasks.findOne({ selector: { id: task.id } }).exec();
         if (doc) {
+          const currentAttachments = doc.attachments || [];
+          for (const att of currentAttachments) {
+             if (att.data.startsWith('LOCAL:')) {
+                await deleteOfflineFile(att.id);
+             } else if (att.data.startsWith('http')) {
+                const url = new URL(att.data);
+                const pathParts = url.pathname.split('/task-attachments/');
+                if (pathParts.length > 1) {
+                   await queueCloudFileForDeletion(pathParts[1]);
+                }
+             }
+          }
           await doc.remove();
           setSelectedTaskId(null);
         }
@@ -190,6 +202,19 @@ export const TaskDetailsPanel: React.FC = () => {
       if (doc) {
         const currentAttachments = doc.attachments || [];
         const fileRemoved = currentAttachments.find((a: any) => a.id === attachmentId);
+        
+        if (fileRemoved) {
+           if (fileRemoved.data.startsWith('LOCAL:')) {
+              await deleteOfflineFile(fileRemoved.id);
+           } else if (fileRemoved.data.startsWith('http')) {
+              const url = new URL(fileRemoved.data);
+              const pathParts = url.pathname.split('/task-attachments/');
+              if (pathParts.length > 1) {
+                 await queueCloudFileForDeletion(pathParts[1]);
+              }
+           }
+        }
+
         await doc.patch({
           attachments: currentAttachments.filter((a: any) => a.id !== attachmentId),
           updatedAt: new Date().toISOString()

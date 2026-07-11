@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useDatabase } from '../db/DatabaseProvider';
 import { useSyncContext } from './useSyncEngine';
-import { getOfflineFile, deleteOfflineFile } from '../db/offlineStorage';
+import { getOfflineFile, deleteOfflineFile, getPendingDeletes, removePendingDelete } from '../db/offlineStorage';
 
 export const useAttachmentUploader = () => {
   const db = useDatabase();
@@ -14,6 +14,15 @@ export const useAttachmentUploader = () => {
     const uploadPendingFiles = async () => {
       isUploading.current = true;
       try {
+        // Process Pending Deletions first
+        const pendingDeletes = await getPendingDeletes();
+        for (const path of pendingDeletes) {
+          const { error } = await supabaseClient.storage.from('task-attachments').remove([path]);
+          if (!error || error.message.includes('not found')) {
+            await removePendingDelete(path);
+          }
+        }
+
         const tasks = await db.tasks.find().exec();
         
         for (const task of tasks) {

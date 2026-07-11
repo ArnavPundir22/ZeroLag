@@ -43,7 +43,7 @@ const playNotificationSound = () => {
 
 interface SyncContextType {
   isOffline: boolean;
-  joinRemoteBoard: (boardId: string) => Promise<boolean>;
+  joinRemoteBoard: (boardId: string) => Promise<boolean | string>;
   supabaseClient: SupabaseClient | null;
 }
 

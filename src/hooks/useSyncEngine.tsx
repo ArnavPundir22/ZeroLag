@@ -311,7 +311,17 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const payload = pendingOps.map((op: any) => {
-        const parsedPayload = (typeof op.payload === 'string' && op.payload.trim()) ? JSON.parse(op.payload) : (op.payload || {});
+        let parsedPayload = (typeof op.payload === 'string' && op.payload.trim()) ? JSON.parse(op.payload) : (op.payload || {});
+
+        // Strip attachment binary data before syncing — base64 blobs can be
+        // hundreds of MB and will exceed Supabase's string length limit.
+        // Attachments are local-only; only metadata is synced.
+        if (parsedPayload.attachments && Array.isArray(parsedPayload.attachments)) {
+          parsedPayload = {
+            ...parsedPayload,
+            attachments: parsedPayload.attachments.map(({ data: _data, ...meta }: any) => meta),
+          };
+        }
         
         return {
           id: op.id,

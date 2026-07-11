@@ -125,3 +125,5 @@ graph TD
 ## 🔒 Security & Privacy Guarantee
 
 ZeroLag utilizes strict cryptographic verification for all data access. When you log in via Clerk, a specialized JWT is generated that PostgreSQL (Supabase) decodes natively. Row-Level Security (RLS) policies are evaluated at the database engine level, ensuring that it is mathematically impossible for users to access or sync workspace data they have not been explicitly granted access to.
+
+> **⚠️ Security Warning:** If any sensitive credentials (API keys, database URLs, etc.) were previously hardcoded in the source code before migrating to `.env` variables, those values are still present in your Git history. You must **immediately rotate** any previously hardcoded secrets to prevent unauthorized access.

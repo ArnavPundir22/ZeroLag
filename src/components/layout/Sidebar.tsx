@@ -83,15 +83,9 @@ export const Sidebar: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) {
-      setModalState({ type: 'alert', title: 'API Key Required', message: 'Please add VITE_GEMINI_API_KEY to your .env.local file to use AI Magic Import.' });
-      return;
-    }
-
     try {
       setIsAiLoading(true);
-      const timetableData = await parseTimetableImage(file, apiKey);
+      const timetableData = await parseTimetableImage(file);
       if (timetableData && timetableData.length > 0) {
         await importDynamicTimetable(user.id, timetableData);
         setIsSidebarOpen(false);

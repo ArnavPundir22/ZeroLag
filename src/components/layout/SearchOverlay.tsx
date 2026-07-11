@@ -13,6 +13,26 @@ export const SearchOverlay: React.FC = () => {
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [results]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev < results.length - 1 ? prev + 1 : prev));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (results.length > 0 && selectedIndex >= 0 && selectedIndex < results.length) {
+        handleSelectTask(results[selectedIndex].id);
+      }
+    }
+  };
 
   // Toggle search with Cmd+K or Ctrl+K
   useHotkeys('meta+k, ctrl+k', (e) => {
@@ -86,6 +106,7 @@ export const SearchOverlay: React.FC = () => {
                 placeholder="Search tasks by title..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="flex-1 bg-transparent text-text-primary text-base focus:outline-none placeholder-text-secondary"
               />
               <button onClick={() => setIsSearchOpen(false)} className="text-text-secondary hover:text-text-primary p-1 rounded">
@@ -97,11 +118,13 @@ export const SearchOverlay: React.FC = () => {
               <div className="max-h-96 overflow-y-auto custom-scrollbar p-2">
                 {results.length > 0 ? (
                   <div className="space-y-1">
-                    {results.map(task => (
+                    {results.map((task, index) => (
                       <button
                         key={task.id}
                         onClick={() => handleSelectTask(task.id)}
-                        className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-surface-hover text-left transition-colors group"
+                        className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors group ${
+                          index === selectedIndex ? 'bg-surface-hover ring-1 ring-border' : 'hover:bg-surface-hover'
+                        }`}
                       >
                         <div>
                           <div className="text-text-primary font-medium text-sm">{task.title}</div>

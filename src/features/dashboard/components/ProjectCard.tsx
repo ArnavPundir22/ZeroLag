@@ -1,6 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useDatabase } from '../../../db/DatabaseProvider';
-import { LayoutDashboard, Clock, ArrowRight, Trash2 } from 'lucide-react';
+import { Clock, ArrowRight, Trash2 } from 'lucide-react';
+
+const getInitials = (title: string) => {
+  if (!title) return 'P';
+  return title.trim().charAt(0).toUpperCase();
+};
+
+const getGradient = (title: string) => {
+  if (!title) return 'bg-gradient-to-br from-gray-700 to-gray-900';
+  const gradients = [
+    'bg-gradient-to-br from-indigo-500 to-purple-600',
+    'bg-gradient-to-br from-blue-500 to-cyan-600',
+    'bg-gradient-to-br from-emerald-400 to-teal-600',
+    'bg-gradient-to-br from-orange-400 to-red-600',
+    'bg-gradient-to-br from-pink-500 to-rose-600',
+    'bg-gradient-to-br from-violet-500 to-fuchsia-600',
+  ];
+  let hash = 0;
+  for (let i = 0; i < title.length; i++) {
+    hash = title.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return gradients[Math.abs(hash) % gradients.length];
+};
 
 interface ProjectCardProps {
   board: any;
@@ -69,8 +91,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ board, navigate, onDel
 
       {/* Top Bar: Icon */}
       <div className="flex justify-start items-start z-10 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-surface-hover flex items-center justify-center border border-border group-hover:border-accent group-hover:bg-accent/5 transition-all duration-300 shadow-soft">
-          <LayoutDashboard className="w-6 h-6 text-text-primary" />
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-soft text-white font-bold text-lg tracking-wider ${getGradient(board.title)} ring-1 ring-black/5 dark:ring-white/10 group-hover:scale-105 group-hover:rotate-3 transition-transform duration-300`}>
+          {getInitials(board.title)}
         </div>
       </div>
       

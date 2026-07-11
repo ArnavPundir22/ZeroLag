@@ -144,6 +144,8 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .select('board_id')
           .eq('user_id', user.id);
 
+        console.log('[SYNC DEBUG] Fetched board_access for user', user.id, 'Data:', accessData, 'Error:', accessError);
+
         let remoteBoardIds: string[] = [];
         if (!accessError && accessData) {
            remoteBoardIds = accessData.map(a => a.board_id);
@@ -154,6 +156,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const localBoardIds = boards.map((b: any) => b.id);
         
         const allBoardIds = Array.from(new Set([...remoteBoardIds, ...localBoardIds]));
+        console.log('[SYNC DEBUG] allBoardIds to sync:', allBoardIds);
 
         if (allBoardIds.length > 0) {
           let currentLastSync = lastSync;
@@ -174,9 +177,10 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const { data: operations, error } = await query;
 
             if (error) {
-              console.error('[SYNC] Failed to fetch operations:', error);
+              console.error('[SYNC DEBUG] Failed to fetch operations:', error);
               break;
             } else if (operations && operations.length > 0) {
+              console.log(`[SYNC DEBUG] Fetched ${operations.length} operations from Supabase`);
               for (const op of operations) {
                 await handleRemoteOperation(op);
                 currentLastSync = op.timestamp;
@@ -186,6 +190,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 hasMore = false;
               }
             } else {
+              console.log('[SYNC DEBUG] No more operations found');
               hasMore = false;
             }
           }

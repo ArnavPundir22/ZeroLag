@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal } from '../../../components/ui/Modal';
 import { useAppStore } from '../../../store';
-import { Moon, Sun, Monitor, Download, RefreshCw, Wifi, WifiOff, Bell, BellOff } from 'lucide-react';
+import { Moon, Sun, Download, RefreshCw, Wifi, WifiOff, Bell, BellOff } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;

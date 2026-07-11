@@ -85,7 +85,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (op.type === 'DELETE') {
         const doc = await collection.findOne({ selector: { id: op.entity_id || op.entityId } }).exec();
-        if (doc) await doc.remove();
+        if (doc) await doc.incrementalRemove();
       } else {
         // CREATE or UPDATE
         const payloadData = typeof op.payload === 'string' ? JSON.parse(op.payload) : op.payload;
@@ -95,9 +95,18 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { _rev, _deleted, _attachments, _meta, _authorName, ...cleanData } = payloadData;
 
         if (doc) {
-          await doc.patch(cleanData);
+          await doc.incrementalPatch(cleanData);
         } else {
-          await collection.insert(cleanData);
+          try {
+            await collection.insert(cleanData);
+          } catch (err: any) {
+            if (err.status === 409) {
+              const existingDoc = await collection.findOne({ selector: { id: entityId } }).exec();
+              if (existingDoc) await existingDoc.incrementalPatch(cleanData);
+            } else {
+              throw err;
+            }
+          }
         }
       }
     } catch (err) {

@@ -19,7 +19,7 @@ export const getDatabase = async (userId: string) => {
   
   dbPromise = (async () => {
     const db = await createRxDatabase({
-      name: `zerolag_${userId}_v3`,
+      name: `zerolag_${userId}_v4`,
       storage: getRxStorageDexie(),
       multiInstance: true,
       eventReduce: true

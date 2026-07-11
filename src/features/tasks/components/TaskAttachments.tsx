@@ -1,5 +1,6 @@
-import React from 'react';
-import { Paperclip, UploadCloud, File, Download, Trash2 } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Paperclip, UploadCloud, File, Download, Trash2, Loader2 } from 'lucide-react';
+import { getOfflineFile } from '../../../db/offlineStorage';
 
 interface TaskAttachmentsProps {
   task: any;
@@ -8,6 +9,35 @@ interface TaskAttachmentsProps {
 }
 
 export const TaskAttachments: React.FC<TaskAttachmentsProps> = ({ task, handleFileUpload, handleRemoveAttachment }) => {
+  const [localUrls, setLocalUrls] = useState<Record<string, string>>({});
+  const urlsRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    if (!task?.attachments) return;
+
+    const loadLocalUrls = async () => {
+      const newUrls: Record<string, string> = {};
+      for (const file of task.attachments) {
+        if (file.data?.startsWith('LOCAL:')) {
+          const localId = file.data.replace('LOCAL:', '');
+          const localFile = await getOfflineFile(localId);
+          if (localFile) {
+            const url = URL.createObjectURL(localFile.file);
+            newUrls[file.id] = url;
+            urlsRef.current.push(url);
+          }
+        }
+      }
+      setLocalUrls(newUrls);
+    };
+    loadLocalUrls();
+
+    return () => {
+      urlsRef.current.forEach(url => URL.revokeObjectURL(url));
+      urlsRef.current = [];
+    };
+  }, [task?.attachments]);
+
   return (
     <div className="bg-black/20 rounded-2xl p-4 border border-white/5">
       <div className="flex items-center justify-between mb-4">
@@ -41,16 +71,22 @@ export const TaskAttachments: React.FC<TaskAttachmentsProps> = ({ task, handleFi
                 </div>
               </div>
               <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                <a 
-                  href={file.data.startsWith('http') ? `${file.data}?download=${encodeURIComponent(file.name)}` : file.data} 
-                  download={file.name}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-1.5 text-text-secondary hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                </a>
-                <button 
+                {file.data?.startsWith('LOCAL:') && !localUrls[file.id] ? (
+                  <div className="p-1.5 text-text-secondary">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  </div>
+                ) : (
+                  <a 
+                    href={localUrls[file.id] || (file.data?.startsWith('http') ? `${file.data}?download=${encodeURIComponent(file.name)}` : file.data)} 
+                    download={file.name}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-1.5 text-text-secondary hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                  </a>
+                )}
+                <button  
                   onClick={() => handleRemoveAttachment(file.id)}
                   className="p-1.5 text-text-secondary hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                 >

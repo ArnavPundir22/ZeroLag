@@ -11,10 +11,9 @@ import { TaskLabels } from './TaskLabels';
 import { TaskDescription } from './TaskDescription';
 import { TaskAttachments } from './TaskAttachments';
 import { TaskComments } from './TaskComments';
-import { useSyncContext } from '../../../hooks/useSyncEngine';
+import { saveOfflineFile } from '../../../db/offlineStorage';
 
 export const TaskDetailsPanel: React.FC = () => {
-  const { supabaseClient, isOffline } = useSyncContext();
   const selectedTaskId = useAppStore(state => state.selectedTaskId);
   const setSelectedTaskId = useAppStore(state => state.setSelectedTaskId);
   const currentBoardId = useAppStore(state => state.currentBoardId);
@@ -143,43 +142,23 @@ export const TaskDetailsPanel: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file || !task || !db) return;
 
-    if (file.size > 50 * 1024 * 1024) {
-      alert('File is too large. Maximum size is 50MB.');
+    if (file.size > 20 * 1024 * 1024) {
+      alert('File is too large. Maximum size is 20MB.');
       return;
     }
 
-    if (isOffline || !supabaseClient) {
-      alert('You must be online to upload attachments.');
-      return;
-    }
-
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${uuidv4()}.${fileExt}`;
-    const filePath = `${task.id}/${fileName}`;
+    const attachmentId = uuidv4();
     
     try {
-      const { error: uploadError } = await supabaseClient.storage
-        .from('task-attachments')
-        .upload(filePath, file);
-        
-      if (uploadError) {
-        console.error('Supabase upload failed:', uploadError);
-        alert('Failed to upload file to cloud.');
-        return;
-      }
-      
-      const { data } = supabaseClient.storage
-        .from('task-attachments')
-        .getPublicUrl(filePath);
-        
-      const publicUrl = data.publicUrl;
+      // Instantly save to local offline storage
+      await saveOfflineFile(attachmentId, file, file.name, file.type);
 
       const newAttachment = {
-        id: uuidv4(),
+        id: attachmentId,
         name: file.name,
         size: file.size,
         mimeType: file.type,
-        data: publicUrl,
+        data: `LOCAL:${attachmentId}`,
       };
 
       const doc = await db.tasks.findOne({ selector: { id: task.id } }).exec();
@@ -199,7 +178,8 @@ export const TaskDetailsPanel: React.FC = () => {
         });
       }
     } catch (err) {
-      console.error('Failed to process upload:', err);
+      console.error('Failed to process offline upload:', err);
+      alert('Failed to save file locally.');
     }
   };
   

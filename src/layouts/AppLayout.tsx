@@ -8,6 +8,12 @@ import { SyncProvider } from '../hooks/useSyncEngine';
 import { Sidebar } from '../components/layout/Sidebar';
 import { SearchOverlay } from '../components/layout/SearchOverlay';
 import { TaskDetailsPanel } from '../features/tasks/components/TaskDetailsPanel';
+import { useAttachmentUploader } from '../hooks/useAttachmentUploader';
+
+const BackgroundUploader = () => {
+  useAttachmentUploader();
+  return null;
+};
 
 export const AppLayout = () => {
   const setIsSearchOpen = useAppStore(state => state.setIsSearchOpen);
@@ -67,6 +73,7 @@ export const AppLayout = () => {
 
   return (
     <SyncProvider>
+      <BackgroundUploader />
       <div className="flex h-screen bg-transparent text-text-primary overflow-hidden font-sans">
         <Sidebar />
         

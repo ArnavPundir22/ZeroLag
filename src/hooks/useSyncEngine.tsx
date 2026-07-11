@@ -66,7 +66,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleRemoteOperation = async (op: any) => {
     if (!db) return;
-    console.log('[SYNC] Received remote operation:', op);
+    console.log('[SYNC] Received remote operation of type:', op.type);
 
     let collectionName = op.entity.toLowerCase();
     if (collectionName === 'chatmessages') collectionName = 'chatMessages';
@@ -312,7 +312,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const payload = pendingOps.map((op: any) => {
         const parsedPayload = (typeof op.payload === 'string' && op.payload.trim()) ? JSON.parse(op.payload) : (op.payload || {});
-        parsedPayload._authorName = user?.fullName || user?.primaryEmailAddress?.emailAddress || 'A collaborator';
+        parsedPayload._authorName = user?.fullName || user?.firstName || 'A collaborator';
         
         return {
           id: op.id,
@@ -382,7 +382,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           if (insertError) {
             console.error('[SYNC] Failed to insert operations chunk to Supabase:', insertError);
-            console.error('[SYNC] Chunk payload that failed:', JSON.stringify(insertChunk, null, 2));
+            console.error('[SYNC] Chunk payload insertion failed (payload redacted for privacy)');
             
             // Identify permanent vs transient errors
             const errorCode = String(insertError?.code || '');

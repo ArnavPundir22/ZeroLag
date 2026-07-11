@@ -18,7 +18,7 @@ export const TaskDetailsPanel: React.FC = () => {
   const currentBoardId = useAppStore(state => state.currentBoardId);
   const db = useDatabase();
   const { user } = useUser();
-  const currentUserName = user?.fullName || user?.firstName || user?.primaryEmailAddress?.emailAddress || 'Anonymous';
+  const currentUserName = user?.fullName || user?.firstName || 'Anonymous';
   
   const [task, setTask] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);

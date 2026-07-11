@@ -13,19 +13,19 @@ export default async function handler(req: any, res: any) {
 
   const authHeader = req.headers.authorization || req.headers.Authorization;
   if (!authHeader || typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ 
+    return res.status(401).json({
       error: 'Unauthorized',
       details: 'Missing or invalid Authorization header.',
       receivedHeaders: Object.keys(req.headers)
     });
   }
-  
+
   const token = authHeader.split(' ')[1];
   let decodedToken: any;
   try {
     decodedToken = await verifyToken(token, { secretKey: process.env.CLERK_SECRET_KEY });
   } catch (err: any) {
-    return res.status(401).json({ 
+    return res.status(401).json({
       error: 'Invalid Token',
       details: err.message || String(err)
     });
@@ -43,7 +43,7 @@ export default async function handler(req: any, res: any) {
   } else {
     userRateLimit.count++;
   }
-  
+
   rateLimitMap.set(userId, userRateLimit);
 
   if (userRateLimit.count > MAX_REQUESTS_PER_WINDOW) {
@@ -87,6 +87,11 @@ Guidelines:
 - Guess labels based on content (e.g. "Lecture", "Lab", "Break", "Placement").
 - Include all details visible in the image (Time, Faculty, Room).
 - Extract any deadline or due date mentioned and include it as "dueDate" (in ISO format YYYY-MM-DD), otherwise leave it as an empty string.
+- Carefully check the timetable image to make sure the JSON is correct.
+- Provide the most accurate timetable data possible based on the image.
+- There should be zero error possiblity in the json data.
+- Every data should be correct as per the timetable image.
+- Match the JSON and the data in the image with high accuracy.
 - Do NOT wrap the JSON in \`\`\`json \`\`\`. Output just the raw array.
 `;
 
@@ -114,12 +119,12 @@ Guidelines:
 
     const text = response.text || '';
     const cleanText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-    
+
     return res.status(200).json(JSON.parse(cleanText));
   } catch (error: any) {
     const correlationId = Math.random().toString(36).substring(2, 15);
     console.error(`[Correlation ID: ${correlationId}] AI Parser Error:`, error);
-    
+
     if (error?.status === 429) {
       return res.status(429).json({ error: "API Quota Exceeded. You have reached your Gemini API usage limit.", correlationId });
     }

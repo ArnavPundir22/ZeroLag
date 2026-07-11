@@ -59,8 +59,8 @@ export const Task: React.FC<TaskProps> = ({ task, columnTitle }) => {
         >
           <GripVertical className="w-5 h-5" />
         </div>
-        <div>
-          <h4 className="text-text-primary text-sm font-medium leading-tight">{task.title}</h4>
+        <div className="flex-1 min-w-0 flex flex-col">
+          <h4 className="text-text-primary text-sm font-medium leading-snug break-words">{task.title}</h4>
           {task.description && (
             <p className="text-text-secondary text-xs mt-1 line-clamp-2">{stripMarkdown(task.description)}</p>
           )}

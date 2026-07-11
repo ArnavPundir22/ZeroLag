@@ -1,4 +1,4 @@
-export const parseTimetableImage = async (file: File): Promise<any[]> => {
+export const parseTimetableImage = async (file: File, token: string): Promise<any[]> => {
   // Convert File to base64
   const base64Image = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -17,6 +17,7 @@ export const parseTimetableImage = async (file: File): Promise<any[]> => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({
       base64Image,

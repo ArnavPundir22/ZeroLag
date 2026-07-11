@@ -1,8 +1,21 @@
 import { GoogleGenAI } from '@google/genai';
+import { verifyToken } from '@clerk/backend';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  
+  const token = authHeader.split(' ')[1];
+  try {
+    await verifyToken(token, { secretKey: process.env.CLERK_SECRET_KEY });
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid Token' });
   }
 
   const { base64Image, mimeType } = req.body || {};

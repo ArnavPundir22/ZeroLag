@@ -312,7 +312,6 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const payload = pendingOps.map((op: any) => {
         const parsedPayload = (typeof op.payload === 'string' && op.payload.trim()) ? JSON.parse(op.payload) : (op.payload || {});
-        parsedPayload._authorName = user?.fullName || user?.firstName || 'A collaborator';
         
         return {
           id: op.id,

@@ -4,7 +4,7 @@ import { useAppStore } from '../../store';
 import { useDatabase } from '../../db/DatabaseProvider';
 import { v4 as uuidv4 } from 'uuid';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { UserButton, useUser, useClerk } from '@clerk/react';
+import { UserButton, useUser, useClerk, useSession } from '@clerk/react';
 import { useSyncContext } from '../../hooks/useSyncEngine';
 import { Modal } from '../ui/Modal';
 import { SettingsModal } from '../../features/settings/components/SettingsModal';
@@ -15,6 +15,7 @@ import { parseTimetableImage } from '../../utils/aiTimetableParser';
 export const Sidebar: React.FC = () => {
   const { user } = useUser();
   const { signOut } = useClerk();
+  const { session } = useSession();
 
   const currentBoardId = useAppStore(state => state.currentBoardId);
   const setCurrentBoardId = useAppStore(state => state.setCurrentBoardId);
@@ -85,7 +86,8 @@ export const Sidebar: React.FC = () => {
 
     try {
       setIsAiLoading(true);
-      const timetableData = await parseTimetableImage(file);
+      const token = await session?.getToken() || '';
+      const timetableData = await parseTimetableImage(file, token);
       if (timetableData && timetableData.length > 0) {
         await importDynamicTimetable(user.id, timetableData);
         setIsSidebarOpen(false);

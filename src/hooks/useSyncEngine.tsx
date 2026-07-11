@@ -335,19 +335,29 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      const payload = pendingOps.map((op: any) => {
+      const payload = [];
+      for (const op of pendingOps) {
+        if (op.payload && op.payload.length > 10 * 1024 * 1024) {
+           console.error('[SYNC] Purging massive stuck operation (over 10MB limit)', op.id);
+           const doc = await db.operations.findOne({ selector: { id: op.id } }).exec();
+           if (doc) await doc.remove();
+           continue; // Skip it completely
+        }
+        
         const parsedPayload = (typeof op.payload === 'string' && op.payload.trim()) ? JSON.parse(op.payload) : (op.payload || {});
         
-        return {
-          id: op.id,
-          board_id: op.boardId || 'unknown',
-          type: op.type,
-          entity: op.entity,
-          entity_id: op.entityId,
-          payload: parsedPayload,
-          timestamp: op.timestamp
-        };
-      }).filter((op: any) => op.board_id !== 'unknown');
+        if (op.boardId && op.boardId !== 'unknown') {
+          payload.push({
+            id: op.id,
+            board_id: op.boardId,
+            type: op.type,
+            entity: op.entity,
+            entity_id: op.entityId,
+            payload: parsedPayload,
+            timestamp: op.timestamp
+          });
+        }
+      }
 
       if (payload.length === 0) {
         // Mark pending ops as synced locally even if they were skipped, to prevent endless loop

@@ -163,8 +163,8 @@ export const Sidebar: React.FC = () => {
         />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-surface flex flex-col transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0 md:bg-surface/30 shrink-0 ${isSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`}>
-        <div className="h-14 flex items-center px-6 border-b border-border">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass-panel border-r border-border flex flex-col transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0 shrink-0 ${isSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`}>
+        <div className="h-14 flex items-center px-6 border-b border-border/50">
           <Link to="/" className="flex items-center gap-2 text-accent">
             <Activity className="w-5 h-5" />
             <h1 className="font-semibold text-lg tracking-tight text-text-primary">ZeroLag</h1>

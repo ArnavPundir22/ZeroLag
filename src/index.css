@@ -17,12 +17,12 @@
 
 @layer base {
   :root {
-    --bg-color: #0f172a; /* Deep Canvas */
-    --surface-color: rgba(255, 255, 255, 0.03); /* Frosted Glass */
-    --surface-hover-color: rgba(255, 255, 255, 0.08); /* Frosted Glass Hover */
-    --border-color: rgba(255, 255, 255, 0.1);
+    --bg-color: #030712; /* Midnight Liquid Canvas */
+    --surface-color: rgba(255, 255, 255, 0.02); /* Ultra-frosted Glass */
+    --surface-hover-color: rgba(255, 255, 255, 0.06); /* Frosted Glass Hover */
+    --border-color: rgba(255, 255, 255, 0.05); /* Soft light catch */
     --accent-color: #6366f1; /* Electric Indigo */
-    --accent-hover-color: #4f46e5;
+    --accent-hover-color: #818cf8;
     --text-primary-color: #f8fafc;
     --text-secondary-color: #94a3b8;
     color-scheme: dark;
@@ -58,30 +58,45 @@
     content: '';
     position: fixed;
     border-radius: 50%;
-    filter: blur(120px);
+    filter: blur(140px);
     z-index: -1;
     pointer-events: none;
-    opacity: 0.35;
+    opacity: 0.45;
+    animation: liquid-drift 20s infinite alternate ease-in-out;
   }
 
   body::before {
-    top: -20%;
+    top: -10%;
     left: -10%;
     width: 60vw;
     height: 60vh;
     background: #6366f1; /* Indigo */
+    animation-delay: -5s;
   }
 
   body::after {
-    bottom: -20%;
+    bottom: -10%;
     right: -10%;
-    width: 60vw;
-    height: 60vh;
+    width: 50vw;
+    height: 50vh;
     background: #a855f7; /* Violet */
+  }
+
+  @keyframes liquid-drift {
+    0% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(5%, 5%) scale(1.05);
+    }
+    100% {
+      transform: translate(-2%, -5%) scale(0.95);
+    }
   }
 
   :root.light body::before, :root.light body::after {
     opacity: 0.15;
+    animation: none;
   }
 }
 
@@ -119,5 +134,21 @@
   
   .shadow-soft-lg {
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  }
+
+  /* Liquid Glass Utilities */
+  .glass-panel {
+    @apply bg-surface border border-border backdrop-blur-2xl;
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-card {
+    @apply bg-surface border border-border backdrop-blur-xl transition-all duration-300;
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 8px 32px -8px rgba(0, 0, 0, 0.3);
+  }
+
+  .glass-card:hover {
+    @apply bg-surface-hover border-white/10;
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 12px 40px -8px rgba(99, 102, 241, 0.15);
   }
 }

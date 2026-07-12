@@ -26,7 +26,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-surface border border-border rounded-xl shadow-2xl w-full max-w-md overflow-hidden pointer-events-auto flex flex-col"
+              className="glass-panel rounded-xl shadow-2xl w-full max-w-md overflow-hidden pointer-events-auto flex flex-col"
             >
               <div className="px-6 py-4 border-b border-border flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-text-primary">{title}</h2>

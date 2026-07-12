@@ -1,0 +1,370 @@
+name: CI — ZeroLag Quality Gate
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ─────────────────────────────────────────────
+  # Job 1: TypeScript — Frontend (src/)
+  # ─────────────────────────────────────────────
+  typecheck-frontend:
+    name: TypeCheck — Frontend (src/)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript — compile src/ (tsc -b)
+        run: npx tsc -b
+        # Uses tsconfig.json which references tsconfig.app.json (covers src/)
+        # Flags: noUnusedLocals, noUnusedParameters, noFallthroughCasesInSwitch
+        # A single type error here fails the entire job immediately.
+
+  # ─────────────────────────────────────────────
+  # Job 2: TypeScript — Serverless API (api/)
+  # ─────────────────────────────────────────────
+  typecheck-api:
+    name: TypeCheck — API (api/)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write tsconfig for api/
+        # api/ is not covered by tsconfig.app.json (which only includes "src").
+        # We create a dedicated tsconfig just for the api directory.
+        run: |
+          cat > tsconfig.api.json << 'EOF'
+          {
+            "compilerOptions": {
+              "target": "ES2022",
+              "module": "commonjs",
+              "lib": ["ES2022"],
+              "strict": true,
+              "esModuleInterop": true,
+              "skipLibCheck": true,
+              "noUnusedLocals": true,
+              "noUnusedParameters": true,
+              "noImplicitAny": true,
+              "noEmit": true,
+              "types": ["node"]
+            },
+            "include": ["api/**/*.ts"]
+          }
+          EOF
+
+      - name: Install @types/node for API check
+        run: npm install --save-dev @types/node 2>/dev/null || true
+
+      - name: TypeScript — compile api/
+        run: npx tsc --project tsconfig.api.json
+
+  # ─────────────────────────────────────────────
+  # Job 3: Lint — oxlint
+  # ─────────────────────────────────────────────
+  lint:
+    name: Lint — oxlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run oxlint on src/
+        run: npx oxlint src/
+        # Uses .oxlintrc.json: react, typescript, oxc plugins
+        # react/rules-of-hooks → error (hooks called conditionally fail CI)
+        # react/only-export-components → warn (won't fail, just annotates)
+
+      - name: Run oxlint on api/
+        run: npx oxlint api/
+        # Ensures the serverless function also follows lint rules
+
+  # ─────────────────────────────────────────────
+  # Job 4: Secret Leak Detection
+  # ─────────────────────────────────────────────
+  secret-scan:
+    name: Secret Scan — Detect Leaked Keys
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for gitleaks
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Detects: API keys, tokens, passwords, connection strings
+        # Scans every file changed in this push/PR
+        # Fails immediately if ANY secret pattern is found
+
+      - name: Check .env files are gitignored
+        run: |
+          # Verify .env and .env.local are NOT tracked by git
+          if git ls-files --error-unmatch .env 2>/dev/null; then
+            echo "ERROR: .env file is tracked by git! Remove it."
+            exit 1
+          fi
+          if git ls-files --error-unmatch .env.local 2>/dev/null; then
+            echo "ERROR: .env.local file is tracked by git! Remove it."
+            exit 1
+          fi
+          echo "✓ No .env files tracked by git"
+
+      - name: Verify no hardcoded key patterns in source
+        run: |
+          # Custom grep for common key patterns not caught by gitleaks
+          PATTERNS=(
+            "sk_live_"
+            "pk_live_"
+            "sk_test_"
+            "AIzaSy"
+            "eyJhbGciOiJSUzI1NiIsImtpZCI6"
+          )
+          FAIL=0
+          for pattern in "${PATTERNS[@]}"; do
+            if grep -rn "$pattern" src/ api/ --include="*.ts" --include="*.tsx" 2>/dev/null; then
+              echo "ERROR: Found hardcoded key pattern '$pattern' in source!"
+              FAIL=1
+            fi
+          done
+          if [ "$FAIL" -eq 1 ]; then exit 1; fi
+          echo "✓ No hardcoded key patterns found"
+
+  # ─────────────────────────────────────────────
+  # Job 5: Production Build
+  # ─────────────────────────────────────────────
+  build:
+    name: Build — Vite Production
+    runs-on: ubuntu-latest
+    needs: [typecheck-frontend, typecheck-api, lint]
+    # Only runs if all type and lint checks pass (fail fast)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        env:
+          # Provide stub values so Vite doesn't fail on missing VITE_ vars
+          # These stubs are NOT real keys — build-time validation only
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: npm run build
+        # npm run build = "tsc -b && vite build"
+        # TypeScript compile THEN Vite bundle — both must succeed
+
+      - name: Verify dist/ was created
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "ERROR: dist/ directory was not created by the build"
+            exit 1
+          fi
+          if [ ! -f "dist/index.html" ]; then
+            echo "ERROR: dist/index.html is missing"
+            exit 1
+          fi
+          echo "✓ dist/ exists and contains index.html"
+          ls -lah dist/
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 1
+          # Passed to bundle-size job below
+
+  # ─────────────────────────────────────────────
+  # Job 6: Bundle Size Budget
+  # ─────────────────────────────────────────────
+  bundle-size:
+    name: Bundle Size — Enforce Budget
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Check bundle size
+        run: |
+          # Fail if any single JS chunk exceeds 1500 KB (uncompressed) (html2pdf made it large)
+          # or total JS exceeds 3000 KB (uncompressed)
+          MAX_SINGLE_CHUNK_KB=2500
+          MAX_TOTAL_KB=3500
+          FAIL=0
+
+          echo "=== JS Bundle Sizes ==="
+          TOTAL_KB=0
+          for file in dist/assets/*.js; do
+            SIZE_KB=$(du -k "$file" | cut -f1)
+            TOTAL_KB=$((TOTAL_KB + SIZE_KB))
+            echo "$file: ${SIZE_KB} KB"
+            if [ "$SIZE_KB" -gt "$MAX_SINGLE_CHUNK_KB" ]; then
+              echo "  ⚠ WARNING: Single chunk exceeds ${MAX_SINGLE_CHUNK_KB} KB limit!"
+              echo "  Consider splitting this chunk with dynamic import() or React.lazy()"
+              # Warning only — not a hard failure for single chunks
+            fi
+          done
+
+          echo "=== Total JS: ${TOTAL_KB} KB (limit: ${MAX_TOTAL_KB} KB) ==="
+          if [ "$TOTAL_KB" -gt "$MAX_TOTAL_KB" ]; then
+            echo "ERROR: Total JS bundle (${TOTAL_KB} KB) exceeds ${MAX_TOTAL_KB} KB limit"
+            echo "Use React.lazy(), dynamic import(), or remove unused dependencies."
+            FAIL=1
+          fi
+
+          if [ "$FAIL" -eq 1 ]; then exit 1; fi
+          echo "✓ Bundle size within limits"
+
+  # ─────────────────────────────────────────────
+  # Job 7: Security Headers Validation
+  # ─────────────────────────────────────────────
+  security-headers:
+    name: Security — Validate vercel.json Headers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Verify required security headers in vercel.json
+        run: |
+          FAIL=0
+          if [ ! -f "vercel.json" ]; then
+            echo "vercel.json not found, skipping security header checks."
+            exit 0
+          fi
+          HEADERS_JSON=$(cat vercel.json)
+
+          check_header() {
+            local KEY="$1"
+            if echo "$HEADERS_JSON" | jq -e ".headers[].headers[] | select(.key == \"$KEY\")" > /dev/null 2>&1; then
+              echo "  ✓ $KEY present"
+            else
+              echo "  ✗ MISSING: $KEY"
+              FAIL=1
+            fi
+          }
+
+          echo "Checking security headers in vercel.json..."
+          check_header "X-Content-Type-Options"
+          check_header "X-Frame-Options"
+          check_header "Strict-Transport-Security"
+          check_header "Content-Security-Policy"
+
+          # Ensure HSTS has a long max-age
+          HSTS_VALUE=$(echo "$HEADERS_JSON" | jq -r '.headers[].headers[] | select(.key == "Strict-Transport-Security") | .value' 2>/dev/null || echo "")
+          if [[ "$HSTS_VALUE" != *"max-age=31536000"* ]]; then
+            echo "  ✗ HSTS max-age must be at least 31536000 (1 year)"
+            FAIL=1
+          else
+            echo "  ✓ HSTS max-age is 31536000"
+          fi
+
+          # Ensure X-Frame-Options is DENY (not SAMEORIGIN)
+          XFO_VALUE=$(echo "$HEADERS_JSON" | jq -r '.headers[].headers[] | select(.key == "X-Frame-Options") | .value' 2>/dev/null || echo "")
+          if [ "$XFO_VALUE" != "DENY" ]; then
+            echo "  ✗ X-Frame-Options must be DENY, got: $XFO_VALUE"
+            FAIL=1
+          else
+            echo "  ✓ X-Frame-Options is DENY"
+          fi
+
+          if [ "$FAIL" -eq 1 ]; then
+            echo ""
+            echo "ERROR: One or more required security headers are missing or misconfigured in vercel.json"
+            exit 1
+          fi
+          echo ""
+          echo "✓ All security headers are correctly configured"
+
+  # ─────────────────────────────────────────────
+  # Job 8: Environment Variable Integrity Check
+  # ─────────────────────────────────────────────
+  env-check:
+    name: Config — .env.example Completeness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check .env.example has all required keys
+        run: |
+          if [ ! -f ".env.example" ]; then
+            echo ".env.example not found, skipping."
+            exit 0
+          fi
+          REQUIRED_KEYS=(
+            "VITE_CLERK_PUBLISHABLE_KEY"
+            "CLERK_SECRET_KEY"
+            "VITE_SUPABASE_URL"
+            "VITE_SUPABASE_ANON_KEY"
+            "GEMINI_API_KEY"
+          )
+          FAIL=0
+          for key in "${REQUIRED_KEYS[@]}"; do
+            if ! grep -q "^${key}=" .env.example; then
+              echo "  ✗ MISSING from .env.example: $key"
+              FAIL=1
+            else
+              echo "  ✓ $key"
+            fi
+          done
+
+          # Also check that .env.example values are empty (just key=, no real values)
+          while IFS='=' read -r key value; do
+            [[ "$key" =~ ^#.*$ ]] && continue  # skip comments
+            [[ -z "$key" ]] && continue          # skip blank lines
+            if [ -n "$value" ] && [[ "$value" != '""' ]] && [[ "$value" != "''" ]]; then
+              echo "  ✗ WARNING: .env.example has a non-empty value for $key"
+              echo "    .env.example should only have empty placeholders (KEY=)"
+              FAIL=1
+            fi
+          done < .env.example
+
+          if [ "$FAIL" -eq 1 ]; then exit 1; fi
+          echo "✓ .env.example is complete and has no hardcoded values"

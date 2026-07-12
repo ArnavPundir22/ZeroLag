@@ -15,6 +15,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: { enabled: true },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5000000 // 5MB limit
+      },
       manifest: {
         name: 'ZeroLag',
         short_name: 'ZeroLag',

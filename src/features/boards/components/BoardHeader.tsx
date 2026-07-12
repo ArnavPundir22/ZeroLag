@@ -34,8 +34,8 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
   return (
     <header className="flex flex-col sm:flex-row sm:h-14 sm:items-center justify-between shrink-0 bg-background/80 backdrop-blur-md z-10 relative border-b border-border">
       {/* Top Row: Title, Menu, and basic status */}
-      <div className="flex items-center justify-between h-14 px-3 sm:px-8 w-full sm:w-auto">
-        <div className="flex items-center gap-1 sm:gap-4">
+      <div className="flex items-center justify-between h-14 px-3 sm:px-8 w-full overflow-x-auto hide-scrollbar">
+        <div className="flex items-center gap-1 sm:gap-2 lg:gap-4 shrink-0">
           <button 
             onClick={() => setIsSidebarOpen(true)}
             className="md:hidden p-1.5 -ml-1.5 text-text-secondary hover:text-text-primary rounded-md hover:bg-surface-hover flex items-center justify-center min-w-[32px]"
@@ -98,7 +98,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
           </div>
         </div>
         
-        <div className="flex items-center gap-1 sm:gap-4 text-sm relative">
+        <div className="flex items-center gap-1 sm:gap-2 lg:gap-4 text-sm relative shrink-0">
           {/* Desktop Avatars */}
           <div className="hidden md:flex items-center -space-x-2 mr-2">
             {user && (
@@ -176,7 +176,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
               title="Add Custom Phase"
             >
               <Plus className="w-4 h-4" />
-              <span className="font-medium">Phase</span>
+              <span className="font-medium hidden 2xl:inline">Phase</span>
             </button>
             <button
               onClick={handleMeetClick}
@@ -184,7 +184,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
               title="Start Video Meeting"
             >
               <Video className="w-4 h-4" />
-              <span className="font-medium">Meet</span>
+              <span className="font-medium hidden 2xl:inline">Meet</span>
             </button>
             <button
               onClick={() => window.location.reload()}
@@ -192,7 +192,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
               title="Refresh App"
             >
               <RefreshCw className="w-4 h-4" />
-              <span className="font-medium">Refresh</span>
+              <span className="font-medium hidden 2xl:inline">Refresh</span>
             </button>
             <button 
               onClick={handleShare}
@@ -200,7 +200,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
               title="Share Project"
             >
               <Share2 className="w-4 h-4" />
-              <span className="font-medium">Share</span>
+              <span className="font-medium hidden 2xl:inline">Share</span>
             </button>
           </div>
         </div>

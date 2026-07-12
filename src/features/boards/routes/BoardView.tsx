@@ -163,7 +163,8 @@ export const BoardView = () => {
     // Connect to the deterministic meeting room using a GET request for PWA compatibility
     // The deployed server needs the updated /meet endpoint for this to work perfectly.
     const baseUrl = 'https://baatcheet-88e9.onrender.com/meet';
-    const roomCode = currentBoardId.substring(0, 6).toUpperCase();
+    // Remove "BOARD-" prefix if exists to ensure unique room codes across projects
+    const roomCode = currentBoardId.replace(/^BOARD-/i, '').substring(0, 6).toUpperCase();
     const username = user?.fullName || user?.firstName || 'ZeroLag User';
     
     const params = new URLSearchParams({

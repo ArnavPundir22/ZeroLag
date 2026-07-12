@@ -5,6 +5,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { Bold, Italic, List, ListOrdered, Download, Heading1, Heading2, Quote, Code } from 'lucide-react';
 import { useAppStore } from '../../../store';
 import { Markdown } from 'tiptap-markdown';
+import { marked } from 'marked';
 
 interface TaskDescriptionProps {
   task: any;
@@ -100,7 +101,7 @@ export const TaskDescription: React.FC<TaskDescriptionProps> = ({ task, updateFi
         placeholder: 'Add a more detailed description...',
       }),
     ],
-    content: task.description || '',
+    content: task.description ? marked.parse(task.description, { async: false }) as string : '',
     onBlur: ({ editor }) => {
       // Save as Markdown so it remains compatible and clean in the database
       const markdown = (editor.storage as any).markdown.getMarkdown();
@@ -118,7 +119,7 @@ export const TaskDescription: React.FC<TaskDescriptionProps> = ({ task, updateFi
   // Sync external changes
   useEffect(() => {
     if (editor && task.description && (editor.storage as any).markdown.getMarkdown() !== task.description) {
-      editor.commands.setContent(task.description);
+      editor.commands.setContent(task.description ? marked.parse(task.description, { async: false }) as string : '');
     }
   }, [task.description, editor]);
 

@@ -16,7 +16,7 @@ jobs:
   deploy-preview:
     name: Deploy — Preview (Vercel)
     runs-on: ubuntu-latest
-    if: github.ref != 'refs/heads/main'
+    if: github.ref != 'refs/heads/master'
     environment: ${{ 'preview' }}
     steps:
       - uses: actions/checkout@v4
@@ -74,7 +74,7 @@ jobs:
   deploy-production:
     name: Deploy — Production (Vercel)
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master'
     environment: ${{ 'production' }}
     # Production deploy is a separate GitHub Environment with optional
     # "Required reviewers" protection rule for an extra human gate

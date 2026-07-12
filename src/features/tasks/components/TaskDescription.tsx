@@ -4,6 +4,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Bold, Italic, List, ListOrdered, Download, Heading1, Heading2, Quote, Code } from 'lucide-react';
 import { useAppStore } from '../../../store';
+import { Markdown } from 'tiptap-markdown';
 
 interface TaskDescriptionProps {
   task: any;
@@ -94,15 +95,17 @@ export const TaskDescription: React.FC<TaskDescriptionProps> = ({ task, updateFi
   const editor = useEditor({
     extensions: [
       StarterKit,
+      Markdown,
       Placeholder.configure({
         placeholder: 'Add a more detailed description...',
       }),
     ],
     content: task.description || '',
     onBlur: ({ editor }) => {
-      const html = editor.getHTML();
-      if (html !== task.description) {
-        updateField('description', html);
+      // Save as Markdown so it remains compatible and clean in the database
+      const markdown = (editor.storage as any).markdown.getMarkdown();
+      if (markdown !== task.description) {
+        updateField('description', markdown);
       }
     },
     editorProps: {
@@ -114,7 +117,7 @@ export const TaskDescription: React.FC<TaskDescriptionProps> = ({ task, updateFi
 
   // Sync external changes
   useEffect(() => {
-    if (editor && task.description && editor.getHTML() !== task.description) {
+    if (editor && task.description && (editor.storage as any).markdown.getMarkdown() !== task.description) {
       editor.commands.setContent(task.description);
     }
   }, [task.description, editor]);

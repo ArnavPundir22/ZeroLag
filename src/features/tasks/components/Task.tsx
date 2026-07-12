@@ -10,11 +10,17 @@ interface TaskProps {
 
 const stripMarkdown = (text: string) => {
   if (!text) return '';
-  return text
+  
+  // First strip HTML tags if present (from TipTap editor)
+  const noHtml = text.replace(/<[^>]*>?/gm, ' ');
+  
+  // Then strip remaining Markdown characters just in case
+  return noHtml
     .replace(/[#_*~`]/g, '') // Remove basic formatting
     .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Extract link text
     .replace(/- \[x?\]/gi, '') // Remove checklists
     .replace(/^\s*[-*+]\s+/gm, '') // Remove bullets
+    .replace(/\s+/g, ' ') // Collapse multiple spaces
     .trim();
 };
 

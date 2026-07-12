@@ -11,6 +11,7 @@ import { TaskLabels } from './TaskLabels';
 import { TaskDescription } from './TaskDescription';
 import { TaskAttachments } from './TaskAttachments';
 import { TaskComments } from './TaskComments';
+import { TaskActivityLog } from './TaskActivityLog';
 import { saveOfflineFile, deleteOfflineFile, queueCloudFileForDeletion } from '../../../db/offlineStorage';
 
 export const TaskDetailsPanel: React.FC = () => {
@@ -23,6 +24,7 @@ export const TaskDetailsPanel: React.FC = () => {
   
   const [task, setTask] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
   const [columns, setColumns] = useState<any[]>([]);
 
   const [newComment, setNewComment] = useState('');
@@ -58,11 +60,17 @@ export const TaskDetailsPanel: React.FC = () => {
     const colSub = db.columns.find({ selector: { boardId: currentBoardId }, sort: [{ position: 'asc' }] }).$.subscribe((cols: any[]) => {
       setColumns(cols.map((c: any) => c.toJSON()));
     });
+    
+    const actSub = db.activities.find({ selector: { taskId: selectedTaskId } }).$.subscribe((docs: any[]) => {
+      const sorted = docs.map((d: any) => d.toJSON()).sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setActivities(sorted);
+    });
 
     return () => {
       sub.unsubscribe();
       cSub.unsubscribe();
       colSub.unsubscribe();
+      actSub.unsubscribe();
     };
   }, [selectedTaskId, db, currentBoardId]);
 
@@ -323,6 +331,13 @@ export const TaskDetailsPanel: React.FC = () => {
                     <span className="bg-border text-[10px] px-1.5 py-0.5 rounded-full text-text-primary">{comments.length}</span>
                     {activeTab === 'comments' && <motion.div layoutId="activeTab" className="absolute -bottom-4 left-0 right-0 h-[2px] bg-accent" />}
                   </button>
+                  <button
+                    onClick={() => setActiveTab('activity')}
+                    className={`pb-2 text-sm font-semibold transition-colors relative flex items-center gap-1.5 ${activeTab === 'activity' ? 'text-accent' : 'text-text-secondary hover:text-text-primary'}`}
+                  >
+                    Activity
+                    {activeTab === 'activity' && <motion.div layoutId="activeTab" className="absolute -bottom-4 left-0 right-0 h-[2px] bg-accent" />}
+                  </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -361,6 +376,10 @@ export const TaskDetailsPanel: React.FC = () => {
                       setNewComment={setNewComment}
                       handleAddComment={handleAddComment}
                     />
+                  )}
+                  
+                  {activeTab === 'activity' && (
+                    <TaskActivityLog activities={activities} />
                   )}
                 </div>
               </div>

@@ -53,11 +53,14 @@ USING (
   EXISTS (
     SELECT 1 FROM board_access 
     WHERE board_access.board_id = operations.board_id 
-    AND board_access.user_id = auth.uid()::text
+    AND board_access.user_id = clerk_user_id()
   )
 );
 ```
-If the user's `auth.uid()` is not found in `board_access` for that specific board, the query returns 0 rows. 
+*Note: We use a custom `clerk_user_id()` function instead of Supabase's built-in `auth.uid()` because `auth.uid()` automatically attempts to cast the Clerk user ID into a UUID, which causes a Postgres type crash.*
+
+If the user's `clerk_user_id()` is not found in `board_access` for that specific board, the query returns 0 rows. 
+
 
 ---
 

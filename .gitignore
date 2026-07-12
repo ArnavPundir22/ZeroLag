@@ -31,3 +31,6 @@ out
 *.sln
 *.sw?
 dev-dist
+
+# Vercel
+.vercel

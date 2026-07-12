@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { Bold, Italic, Link as LinkIcon, Code, List, ListOrdered, Download, Heading } from 'lucide-react';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
+import { useAppStore } from '../../../store';
 
 interface TaskDescriptionProps {
   task: any;
@@ -16,6 +17,7 @@ export const TaskDescription: React.FC<TaskDescriptionProps> = ({ task, updateFi
   const [isDescFocused, setIsDescFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+  const setGlobalToastMessage = useAppStore(state => state.setGlobalToastMessage);
 
   const insertMarkdown = (prefix: string, suffix: string = '') => {
     if (!textareaRef.current) return;
@@ -45,6 +47,11 @@ export const TaskDescription: React.FC<TaskDescriptionProps> = ({ task, updateFi
       return;
     }
 
+    const contentHtml = previewRef.current.innerHTML;
+    setGlobalToastMessage('Preparing PDF download. Please wait while the background process takes place.');
+
+    setTimeout(() => {
+
     const htmlString = `
       <!DOCTYPE html>
       <html>
@@ -69,7 +76,7 @@ export const TaskDescription: React.FC<TaskDescriptionProps> = ({ task, updateFi
       <body>
         <h1>${task.title || 'Task Description'}</h1>
         <div>
-          ${previewRef.current.innerHTML}
+          ${contentHtml}
         </div>
         <script>
           // Automatically trigger print dialog when window loads
@@ -90,6 +97,7 @@ export const TaskDescription: React.FC<TaskDescriptionProps> = ({ task, updateFi
     } else {
       alert('Please allow popups to download the PDF.');
     }
+    }, 1000);
   };
 
   return (

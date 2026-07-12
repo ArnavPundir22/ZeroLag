@@ -8,6 +8,7 @@ if (localStorage.getItem('zerolag_reset_epoch') !== 'v4') {
   localStorage.removeItem('last_sync_timestamp');
   localStorage.removeItem('zerolag_local_ops');
   localStorage.setItem('zerolag_reset_epoch', 'v4');
+  localStorage.setItem('v4_update_msg_shown', 'false');
 }
 
 createRoot(document.getElementById('root')!).render(

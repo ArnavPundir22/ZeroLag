@@ -58,6 +58,15 @@ export const AppLayout = () => {
   }, [globalToastMessage, setGlobalToastMessage]);
 
   useEffect(() => {
+    if (localStorage.getItem('v4_update_msg_shown') === 'false') {
+      setTimeout(() => {
+        setGlobalToastMessage('ZeroLag is upgraded to v4. The app got refreshed to the root level.');
+        localStorage.setItem('v4_update_msg_shown', 'true');
+      }, 1000);
+    }
+  }, [setGlobalToastMessage]);
+
+  useEffect(() => {
     // Check if the event fired before React mounted
     if ((window as any).deferredPromptEvent) {
       setDeferredPrompt((window as any).deferredPromptEvent);

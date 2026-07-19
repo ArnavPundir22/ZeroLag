@@ -1,0 +1,10 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /faq
+Allow: /terms
+Disallow: /b/      # Private board routes require authentication and should not be crawled
+Disallow: /api/    # Backend API endpoints are not for crawlers
+
+Sitemap: https://zerolag.vercel.app/sitemap.xml

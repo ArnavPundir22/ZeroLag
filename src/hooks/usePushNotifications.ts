@@ -46,6 +46,8 @@ export function usePushNotifications() {
         applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
       });
 
+      setIsSubscribed(true);
+
       if (supabaseClient && user) {
         const { error } = await supabaseClient
           .from('push_subscriptions')
@@ -57,12 +59,10 @@ export function usePushNotifications() {
           });
 
         if (error) {
-          console.error('Failed to sync push subscription with Supabase:', error);
-          return false;
+          console.error('Failed to sync push subscription with Supabase (Check if the push_subscriptions table has been created):', error);
         }
       }
 
-      setIsSubscribed(true);
       return true;
     } catch (error) {
       console.error('Error subscribing to push notifications:', error);

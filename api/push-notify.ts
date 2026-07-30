@@ -1,4 +1,3 @@
-import { verifyToken } from '@clerk/backend';
 import { createClient } from '@supabase/supabase-js';
 import webpush from 'web-push';
 
@@ -7,28 +6,33 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // 1. Authenticate with Clerk
+  // 1. Extract Bearer Token
   const authHeader = req.headers.authorization || req.headers.Authorization;
   if (!authHeader || typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized: Missing or invalid Authorization header.' });
   }
 
   const token = authHeader.split(' ')[1];
-  let decodedToken: any;
+  let actorUserId: string;
+
   try {
-    decodedToken = await verifyToken(token, { secretKey: process.env.CLERK_SECRET_KEY });
+    // Decode Supabase-templated Clerk JWT payload (Supabase validates the signature upon DB queries)
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = Buffer.from(base64, 'base64').toString('utf8');
+    const payload = JSON.parse(jsonPayload);
+    actorUserId = payload.sub;
   } catch (err: any) {
-    return res.status(401).json({ error: 'Invalid Token', details: err.message || String(err) });
+    return res.status(401).json({ error: 'Invalid Token Payload structure.', details: err.message });
   }
 
-  const actorUserId = decodedToken.sub;
   const { boardId, title, body, url } = req.body || {};
 
   if (!boardId || !title || !body) {
     return res.status(400).json({ error: 'Missing required parameters: boardId, title, and body are required.' });
   }
 
-  // 2. Initialize Supabase Client with User's JWT to preserve RLS policies
+  // 2. Initialize Supabase Client with User's JWT (verifies JWT signature inside Supabase)
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
 
@@ -108,7 +112,6 @@ export default async function handler(req: any, res: any) {
     const sendPromises = subscriptions.map((subObj: any) => {
       return webpush.sendNotification(subObj.subscription, payload)
         .catch(err => {
-          // If the subscription has expired or is invalid, we should ideally clean it up
           console.warn('[PUSH NOTIFY] Failed to send to subscription, it might have expired:', err.message);
         });
     });

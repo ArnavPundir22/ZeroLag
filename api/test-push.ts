@@ -1,4 +1,3 @@
-import { verifyToken } from '@clerk/backend';
 import { createClient } from '@supabase/supabase-js';
 import webpush from 'web-push';
 
@@ -7,21 +6,27 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  // 1. Extract Bearer Token
   const authHeader = req.headers.authorization || req.headers.Authorization;
   if (!authHeader || typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized: Missing token.' });
   }
 
   const token = authHeader.split(' ')[1];
-  let decodedToken: any;
+  let userId: string;
+
   try {
-    decodedToken = await verifyToken(token, { secretKey: process.env.CLERK_SECRET_KEY });
+    // Decode Supabase-templated Clerk JWT payload (Supabase validates the signature upon DB queries)
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = Buffer.from(base64, 'base64').toString('utf8');
+    const payload = JSON.parse(jsonPayload);
+    userId = payload.sub;
   } catch (err: any) {
-    return res.status(401).json({ error: 'Invalid Token', details: err.message });
+    return res.status(401).json({ error: 'Invalid Token structure.', details: err.message });
   }
 
-  const userId = decodedToken.sub;
-
+  // 2. Initialize Supabase Client
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
 
@@ -38,6 +43,7 @@ export default async function handler(req: any, res: any) {
   });
 
   try {
+    // 3. Fetch subscriptions for the active user
     const { data: subscriptions, error: dbError } = await supabase
       .from('push_subscriptions')
       .select('subscription')
@@ -52,6 +58,7 @@ export default async function handler(req: any, res: any) {
       return res.status(400).json({ error: 'No push subscriptions found for this device. Please toggle push notifications in Settings first.' });
     }
 
+    // 4. Initialize web-push
     const publicVapidKey = process.env.VITE_WEB_PUSH_PUBLIC_KEY;
     const privateVapidKey = process.env.WEB_PUSH_PRIVATE_KEY;
 

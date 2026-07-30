@@ -1,7 +1,8 @@
 import React from 'react';
 import { Modal } from '../../../components/ui/Modal';
 import { useAppStore } from '../../../store';
-import { Moon, Sun, Download, RefreshCw, Wifi, WifiOff, Bell, BellOff } from 'lucide-react';
+import { Moon, Sun, Download, RefreshCw, Wifi, WifiOff, Bell, BellOff, Send } from 'lucide-react';
+import { useSession } from '@clerk/react';
 
 import { usePushNotifications } from '../../../hooks/usePushNotifications';
 
@@ -20,6 +21,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const setNotificationsEnabled = useAppStore(state => state.setNotificationsEnabled);
   const deferredPrompt = useAppStore(state => state.deferredPrompt);
   const { isSubscribed, requestPermissionAndSubscribe } = usePushNotifications();
+  const { session } = useSession();
 
   const handleInstallPwa = async () => {
     if (deferredPrompt) {
@@ -183,6 +185,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               }`} />
             </div>
           </button>
+
+          {isSubscribed && (
+            <button
+              onClick={async () => {
+                try {
+                  const token = await session?.getToken({ template: 'supabase' });
+                  if (!token) {
+                    alert('Authentication error: Unable to retrieve session token.');
+                    return;
+                  }
+
+                  const response = await fetch('/api/test-push', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`
+                    }
+                  });
+
+                  const data = await response.json();
+                  if (response.ok) {
+                    alert(data.message || 'Test push notification successfully dispatched!');
+                  } else {
+                    alert(`Push Fail: ${data.error || 'Check server logs'}`);
+                  }
+                } catch (err: any) {
+                  alert(`Request failed: ${err.message}`);
+                }
+              }}
+              className="w-full border border-purple-500/20 bg-purple-500/5 hover:bg-purple-500/10 text-purple-400 font-bold text-sm rounded-xl py-2.5 flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <Send className="w-4 h-4" />
+              Send Test Notification
+            </button>
+          )}
         </section>
       </div>
     </Modal>

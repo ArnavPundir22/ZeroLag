@@ -32,6 +32,14 @@ self.addEventListener('push', (event: any) => {
         url: payload.url || '/'
       }
     };
+    
+    // Broadcast message to open tabs to play a sound
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients: any[]) => {
+      windowClients.forEach((client: any) => {
+        client.postMessage({ type: 'PLAY_NOTIFICATION_SOUND' });
+      });
+    });
+
     event.waitUntil(
       self.registration.showNotification(payload.title || 'ZeroLag Update', options)
     );

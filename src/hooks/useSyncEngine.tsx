@@ -68,6 +68,19 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Track active channels so we can unsubscribe if needed
   const channelRef = useRef<any>(null);
 
+  // Listen for broadcast messages from the service worker to play sound
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data && event.data.type === 'PLAY_NOTIFICATION_SOUND') {
+          playNotificationSound();
+        }
+      };
+      navigator.serviceWorker.addEventListener('message', handleMessage);
+      return () => navigator.serviceWorker.removeEventListener('message', handleMessage);
+    }
+  }, []);
+
   const handleRemoteOperation = async (op: any) => {
     if (!db) return;
 

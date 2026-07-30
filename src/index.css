@@ -33,8 +33,8 @@
     --surface-color: #ffffff;
     --surface-hover-color: #f1f5f9;
     --border-color: #e2e8f0;
-    --accent-color: #0f172a;
-    --accent-hover-color: #000000;
+    --accent-color: #6366f1; /* Electric Indigo */
+    --accent-hover-color: #4f46e5;
     --text-primary-color: #0f172a;
     --text-secondary-color: #475569;
     color-scheme: light;
@@ -95,8 +95,8 @@
   }
 
   :root.light body::before, :root.light body::after {
-    opacity: 0.15;
-    animation: none;
+    opacity: 0.22;
+    animation: liquid-drift 25s infinite alternate ease-in-out;
   }
 }
 

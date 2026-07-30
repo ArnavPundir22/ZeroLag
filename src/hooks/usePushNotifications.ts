@@ -19,7 +19,12 @@ export function usePushNotifications() {
   const [permission, setPermission] = useState<NotificationPermission>(
     typeof window !== 'undefined' ? Notification.permission : 'default'
   );
-  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('zerolag_push_subscribed') === 'true' && Notification.permission === 'granted';
+    }
+    return false;
+  });
 
   const requestPermissionAndSubscribe = async () => {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) {
@@ -47,6 +52,7 @@ export function usePushNotifications() {
       });
 
       setIsSubscribed(true);
+      localStorage.setItem('zerolag_push_subscribed', 'true');
 
       if (supabaseClient && user) {
         const { error } = await supabaseClient
@@ -75,16 +81,8 @@ export function usePushNotifications() {
       if (Notification.permission === 'granted') {
         requestPermissionAndSubscribe();
       } else {
-        navigator.serviceWorker.ready.then(async (registration) => {
-          try {
-            const subscription = await registration.pushManager.getSubscription();
-            if (subscription) {
-              setIsSubscribed(true);
-            }
-          } catch (err) {
-            console.error('Error fetching push subscription:', err);
-          }
-        });
+        setIsSubscribed(false);
+        localStorage.removeItem('zerolag_push_subscribed');
       }
     }
   }, [user, supabaseClient, isOffline]);

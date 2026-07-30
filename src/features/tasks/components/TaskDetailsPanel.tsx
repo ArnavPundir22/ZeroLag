@@ -115,6 +115,9 @@ export const TaskDetailsPanel: React.FC = () => {
            const col = columns.find(c => c.id === value);
            desc = `Moved to ${col?.title || 'another column'}`;
         }
+        else if (field === 'assignee') {
+           desc = value ? `Assigned task to ${value}` : `Removed assignee`;
+        }
         
         if (desc) {
           await db.activities.insert({

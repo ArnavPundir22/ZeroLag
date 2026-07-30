@@ -449,12 +449,38 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         title = 'New Task Created';
                         body = `${authorName} created task "${taskTitle}"`;
                       } else if (op.type === 'UPDATE') {
-                        if (parsedPayload.assignee) {
-                          title = 'Task Assigned';
-                          body = `${authorName} assigned task "${taskTitle}" to ${parsedPayload.assignee}`;
+                        let desc = '';
+                        try {
+                          const latestActivity = await db.activities.findOne({
+                            selector: { taskId: op.entity_id || op.id },
+                            sort: [{ timestamp: 'desc' }]
+                          }).exec();
+                          if (latestActivity) {
+                            desc = latestActivity.description;
+                          }
+                        } catch (err) {
+                          console.warn('[PUSH] Failed to fetch latest activity for details:', err);
+                        }
+
+                        if (desc) {
+                          if (desc.startsWith('Moved to')) {
+                            title = 'Task Moved';
+                            body = `${authorName} moved task "${taskTitle}" (${desc.toLowerCase()})`;
+                          } else if (desc.startsWith('Assigned task to')) {
+                            title = 'Task Assigned';
+                            body = `${authorName} ${desc.toLowerCase()} "${taskTitle}"`;
+                          } else {
+                            title = 'Task Updated';
+                            body = `${authorName} updated task "${taskTitle}": ${desc}`;
+                          }
                         } else {
-                          title = 'Task Updated';
-                          body = `${authorName} updated task "${taskTitle}"`;
+                          if (parsedPayload.assignee) {
+                            title = 'Task Assigned';
+                            body = `${authorName} assigned task "${taskTitle}" to ${parsedPayload.assignee}`;
+                          } else {
+                            title = 'Task Updated';
+                            body = `${authorName} updated task "${taskTitle}"`;
+                          }
                         }
                       } else if (op.type === 'DELETE') {
                         title = 'Task Deleted';

@@ -27,6 +27,7 @@ self.addEventListener('push', (event: any) => {
       badge: '/icon.png',
       tag: payload.tag || 'zerolag-notification',
       renotify: true,
+      sound: 'default',
       data: {
         url: payload.url || '/'
       }

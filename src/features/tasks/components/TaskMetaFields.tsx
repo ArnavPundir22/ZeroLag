@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, Calendar, Tag, Users } from 'lucide-react';
+import { useUser } from '@clerk/react';
 
 interface TaskMetaFieldsProps {
   task: any;
@@ -10,6 +11,8 @@ interface TaskMetaFieldsProps {
 
 export const TaskMetaFields: React.FC<TaskMetaFieldsProps> = ({ task, columns, updateField, getPriorityColors }) => {
   const [assigneeValue, setAssigneeValue] = useState(task.assignee || '');
+  const { user } = useUser();
+  const currentUserName = user?.fullName || user?.username || user?.firstName || '';
 
   useEffect(() => {
     setAssigneeValue(task.assignee || '');
@@ -63,8 +66,21 @@ export const TaskMetaFields: React.FC<TaskMetaFieldsProps> = ({ task, columns, u
             </option>
           ))}
         </select>
-        <div className="text-text-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-widest mt-4">
-          <Users className="w-3.5 h-3.5" /> Assignee
+        <div className="text-text-secondary flex items-center justify-between mt-4">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
+            <Users className="w-3.5 h-3.5" /> Assignee
+          </div>
+          {currentUserName && assigneeValue !== currentUserName && (
+            <button
+              onClick={() => {
+                setAssigneeValue(currentUserName);
+                updateField('assignee', currentUserName);
+              }}
+              className="text-[10px] text-accent font-bold hover:underline cursor-pointer uppercase"
+            >
+              Join Task
+            </button>
+          )}
         </div>
         <input
           type="text"

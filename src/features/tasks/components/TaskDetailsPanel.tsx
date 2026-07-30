@@ -116,7 +116,12 @@ export const TaskDetailsPanel: React.FC = () => {
            desc = `Moved to ${col?.title || 'another column'}`;
         }
         else if (field === 'assignee') {
-           desc = value ? `Assigned task to ${value}` : `Removed assignee`;
+           const currentUserName = user?.fullName || user?.username || user?.firstName || '';
+           if (value && value === currentUserName) {
+             desc = `Joined the task`;
+           } else {
+             desc = value ? `Assigned task to ${value}` : `Removed assignee`;
+           }
         }
         
         if (desc) {

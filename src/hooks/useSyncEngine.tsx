@@ -463,7 +463,10 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         }
 
                         if (desc) {
-                          if (desc.startsWith('Moved to')) {
+                          if (desc === 'Joined the task') {
+                            title = 'Task Joined';
+                            body = `${authorName} joined the task "${taskTitle}"`;
+                          } else if (desc.startsWith('Moved to')) {
                             title = 'Task Moved';
                             body = `${authorName} moved task "${taskTitle}" (${desc.toLowerCase()})`;
                           } else if (desc.startsWith('Assigned task to')) {

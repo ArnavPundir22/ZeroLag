@@ -72,24 +72,20 @@ export function usePushNotifications() {
 
   useEffect(() => {
     if (user && supabaseClient && !isOffline && ('serviceWorker' in navigator)) {
-      navigator.serviceWorker.ready.then(async (registration) => {
-        try {
-          const subscription = await registration.pushManager.getSubscription();
-          if (subscription) {
-            setIsSubscribed(true);
-            await supabaseClient
-              .from('push_subscriptions')
-              .upsert({
-                user_id: user.id,
-                subscription: subscription.toJSON(),
-              }, {
-                onConflict: 'user_id,subscription'
-              });
+      if (Notification.permission === 'granted') {
+        requestPermissionAndSubscribe();
+      } else {
+        navigator.serviceWorker.ready.then(async (registration) => {
+          try {
+            const subscription = await registration.pushManager.getSubscription();
+            if (subscription) {
+              setIsSubscribed(true);
+            }
+          } catch (err) {
+            console.error('Error fetching push subscription:', err);
           }
-        } catch (err) {
-          console.error('Error fetching push subscription:', err);
-        }
-      });
+        });
+      }
     }
   }, [user, supabaseClient, isOffline]);
 

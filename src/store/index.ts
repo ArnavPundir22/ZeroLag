@@ -49,7 +49,7 @@ export const useAppStore = create<AppState>()(
       setFilterLabels: (labels) => set({ filterLabels: labels }),
       theme: 'dark',
       setTheme: (theme) => set({ theme }),
-      notificationsEnabled: false,
+      notificationsEnabled: true,
       setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
       globalToastMessage: null,
       setGlobalToastMessage: (msg) => set({ globalToastMessage: msg }),

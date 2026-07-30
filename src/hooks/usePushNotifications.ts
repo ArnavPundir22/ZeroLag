@@ -78,7 +78,7 @@ export function usePushNotifications() {
 
   useEffect(() => {
     if (user && supabaseClient && !isOffline && ('serviceWorker' in navigator)) {
-      if (Notification.permission === 'granted') {
+      if (Notification.permission === 'granted' || Notification.permission === 'default') {
         requestPermissionAndSubscribe();
       } else {
         setIsSubscribed(false);

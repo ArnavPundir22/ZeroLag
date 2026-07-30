@@ -423,28 +423,37 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
             try {
               const token = await session?.getToken({ template: 'supabase' });
               if (token) {
-                const authorName = user?.fullName || user?.username || 'A collaborator';
                 for (const op of insertChunk) {
-                  if (op.entity === 'TASKS' || op.entity === 'COMMENTS') {
+                  if (op.entity === 'TASKS' || op.entity === 'COMMENTS' || op.entity === 'CHATMESSAGES') {
                     const parsedPayload = typeof op.payload === 'string' ? JSON.parse(op.payload) : (op.payload || {});
                     let body = '';
-                    const title = 'Project Update';
+                    let title = 'Project Update';
+                    const authorName = parsedPayload._authorName || user?.fullName || user?.username || 'A collaborator';
 
                     if (op.entity === 'TASKS') {
                       const taskTitle = parsedPayload.title || 'untitled task';
                       if (op.type === 'CREATE') {
+                        title = 'New Task Created';
                         body = `${authorName} created task "${taskTitle}"`;
                       } else if (op.type === 'UPDATE') {
                         if (parsedPayload.assignee) {
+                          title = 'Task Assigned';
                           body = `${authorName} assigned task "${taskTitle}" to ${parsedPayload.assignee}`;
                         } else {
+                          title = 'Task Updated';
                           body = `${authorName} updated task "${taskTitle}"`;
                         }
                       } else if (op.type === 'DELETE') {
+                        title = 'Task Deleted';
                         body = `${authorName} deleted task "${taskTitle}"`;
                       }
                     } else if (op.entity === 'COMMENTS') {
+                      title = 'New Comment';
                       body = `${authorName} commented: "${parsedPayload.text?.substring(0, 60) || ''}"`;
+                    } else if (op.entity === 'CHATMESSAGES') {
+                      title = 'New Chat Message';
+                      const sender = parsedPayload.authorName || authorName;
+                      body = `${sender}: ${parsedPayload.text?.substring(0, 60) || ''}`;
                     }
 
                     if (body && op.board_id && op.board_id !== 'unknown') {

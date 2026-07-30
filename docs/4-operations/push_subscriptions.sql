@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
   UNIQUE(user_id, subscription)
 );
 
--- Enable RLS
+-- Enable RLS on push_subscriptions
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- Allow users to manage (insert, update, delete) their own subscriptions
@@ -27,3 +27,13 @@ CREATE POLICY "Users can view subscriptions of collaborators" ON push_subscripti
       AND ba2.user_id = (select auth.jwt() ->> 'sub')
     )
   );
+
+-- Optimize board_access SELECT policy to prevent infinite recursion
+-- and allow collaborators to view each other
+DROP POLICY IF EXISTS "Allow select for board members" ON board_access;
+DROP POLICY IF EXISTS "Users can view board_access" ON board_access;
+DROP POLICY IF EXISTS "Users can view board members" ON board_access;
+
+CREATE POLICY "Allow public select for board_access mapping" ON board_access
+  FOR SELECT
+  USING (true);

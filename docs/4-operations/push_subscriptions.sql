@@ -11,12 +11,14 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- Allow users to manage (insert, update, delete) their own subscriptions
+DROP POLICY IF EXISTS "Users can manage their own subscriptions" ON push_subscriptions;
 CREATE POLICY "Users can manage their own subscriptions" ON push_subscriptions
   FOR ALL
   USING (user_id = (select auth.jwt() ->> 'sub'))
   WITH CHECK (user_id = (select auth.jwt() ->> 'sub'));
 
 -- Allow users to read subscriptions of collaborators they share a board with
+DROP POLICY IF EXISTS "Users can view subscriptions of collaborators" ON push_subscriptions;
 CREATE POLICY "Users can view subscriptions of collaborators" ON push_subscriptions
   FOR SELECT
   USING (

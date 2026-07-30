@@ -34,6 +34,7 @@
     "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.6.0",
     "uuid": "^14.0.1",
+    "web-push": "^3.6.7",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
@@ -43,6 +44,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@types/uuid": "^10.0.0",
+    "@types/web-push": "^3.6.4",
     "@vitejs/plugin-react": "^6.0.3",
     "oxlint": "^1.71.0",
     "puppeteer": "^25.3.0",

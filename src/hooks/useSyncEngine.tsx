@@ -418,6 +418,59 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (insertError) {
             console.error('[SYNC] Failed to insert operations chunk to Supabase:', insertError);
             console.error('[SYNC] Chunk payload insertion failed (payload redacted for privacy)');
+          } else {
+            // Trigger push notifications for successfully synced operations
+            try {
+              const token = await session?.getToken({ template: 'supabase' });
+              if (token) {
+                const authorName = user?.fullName || user?.username || 'A collaborator';
+                for (const op of insertChunk) {
+                  if (op.entity === 'TASKS' || op.entity === 'COMMENTS') {
+                    const parsedPayload = typeof op.payload === 'string' ? JSON.parse(op.payload) : (op.payload || {});
+                    let body = '';
+                    const title = 'Project Update';
+
+                    if (op.entity === 'TASKS') {
+                      const taskTitle = parsedPayload.title || 'untitled task';
+                      if (op.type === 'CREATE') {
+                        body = `${authorName} created task "${taskTitle}"`;
+                      } else if (op.type === 'UPDATE') {
+                        if (parsedPayload.assignee) {
+                          body = `${authorName} assigned task "${taskTitle}" to ${parsedPayload.assignee}`;
+                        } else {
+                          body = `${authorName} updated task "${taskTitle}"`;
+                        }
+                      } else if (op.type === 'DELETE') {
+                        body = `${authorName} deleted task "${taskTitle}"`;
+                      }
+                    } else if (op.entity === 'COMMENTS') {
+                      body = `${authorName} commented: "${parsedPayload.text?.substring(0, 60) || ''}"`;
+                    }
+
+                    if (body && op.board_id && op.board_id !== 'unknown') {
+                      fetch('/api/push-notify', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                          boardId: op.board_id,
+                          title,
+                          body,
+                          url: `/board/${op.board_id}`
+                        })
+                      }).catch(err => console.warn('[PUSH] Failed to trigger push endpoint:', err));
+                    }
+                  }
+                }
+              }
+            } catch (pushErr) {
+              console.warn('[PUSH] Error dispatching push notifications:', pushErr);
+            }
+          }
+
+          if (insertError) {
             
             // Identify permanent vs transient errors
             const errorCode = String(insertError?.code || '');

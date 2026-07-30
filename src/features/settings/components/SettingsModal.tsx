@@ -3,6 +3,8 @@ import { Modal } from '../../../components/ui/Modal';
 import { useAppStore } from '../../../store';
 import { Moon, Sun, Download, RefreshCw, Wifi, WifiOff, Bell, BellOff } from 'lucide-react';
 
+import { usePushNotifications } from '../../../hooks/usePushNotifications';
+
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,6 +19,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const notificationsEnabled = useAppStore(state => state.notificationsEnabled);
   const setNotificationsEnabled = useAppStore(state => state.setNotificationsEnabled);
   const deferredPrompt = useAppStore(state => state.deferredPrompt);
+  const { isSubscribed, requestPermissionAndSubscribe } = usePushNotifications();
 
   const handleInstallPwa = async () => {
     if (deferredPrompt) {
@@ -117,8 +120,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         )}
 
         {/* Notifications Section */}
-        <section>
-          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-3">Notifications</h3>
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-widest">Notifications</h3>
+          
           <button
             onClick={() => setNotificationsEnabled(!notificationsEnabled)}
             className={`w-full border rounded-2xl p-4 flex items-center justify-between transition-all ${
@@ -145,6 +149,37 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             }`}>
               <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300 ${
                 notificationsEnabled ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </div>
+          </button>
+
+          <button
+            onClick={requestPermissionAndSubscribe}
+            disabled={isSubscribed}
+            className={`w-full border rounded-2xl p-4 flex items-center justify-between transition-all ${
+              isSubscribed 
+                ? 'bg-purple-500/10 border-purple-500/30 cursor-default' 
+                : 'bg-surface border-border hover:bg-surface-hover cursor-pointer'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                isSubscribed ? 'bg-purple-500/20 text-purple-400' : 'bg-surface-hover text-text-secondary'
+              }`}>
+                <Bell className="w-5 h-5" />
+              </div>
+              <div className="text-left">
+                <h4 className="text-sm font-bold text-text-primary">Always-on Push Notifications</h4>
+                <p className="text-xs text-text-secondary">
+                  {isSubscribed ? 'Subscribed (Receives updates when app is closed)' : 'Click to enable device push alerts'}
+                </p>
+              </div>
+            </div>
+            <div className={`w-11 h-6 rounded-full transition-colors flex items-center px-1 ${
+              isSubscribed ? 'bg-purple-500' : 'bg-border'
+            }`}>
+              <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300 ${
+                isSubscribed ? 'translate-x-5' : 'translate-x-0'
               }`} />
             </div>
           </button>

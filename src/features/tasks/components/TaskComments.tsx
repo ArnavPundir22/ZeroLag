@@ -24,10 +24,10 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({ comments, currentUse
               )}
               <div className={`flex flex-col ${isYou ? 'items-end' : 'items-start'} max-w-[85%]`}>
                 <div className="flex items-center gap-2 mb-1 px-1">
-                  <span className="font-semibold text-white text-[11px]">{isYou ? 'You' : comment.author}</span>
+                  <span className="font-semibold text-text-primary text-[11px]">{isYou ? 'You' : comment.author}</span>
                   <span className="text-[10px] text-text-secondary">{new Date(comment.createdAt).toLocaleString(undefined, { hour: 'numeric', minute: '2-digit' })}</span>
                 </div>
-                <div className={`p-3 text-sm relative shadow-lg ${isYou ? 'bg-gradient-to-br from-accent to-purple-600 text-white rounded-2xl rounded-br-sm' : 'bg-white/10 border border-white/5 text-white rounded-2xl rounded-bl-sm backdrop-blur-md'}`}>
+                <div className={`p-3 text-sm relative shadow-lg ${isYou ? 'bg-gradient-to-br from-accent to-purple-600 text-white rounded-2xl rounded-br-sm' : 'bg-surface border border-border text-text-primary rounded-2xl rounded-bl-sm backdrop-blur-md'}`}>
                   <p className="whitespace-pre-wrap leading-relaxed">{comment.text}</p>
                 </div>
               </div>
@@ -48,7 +48,7 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({ comments, currentUse
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Type a message..."
-          className="w-full bg-black/40 border border-white/10 rounded-full pl-5 pr-14 py-3.5 text-sm text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent shadow-inner transition-all"
+          className="w-full bg-surface border border-border rounded-full pl-5 pr-14 py-3.5 text-sm text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent shadow-inner transition-all"
         />
         <button
           type="submit"

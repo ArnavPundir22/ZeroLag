@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, X, Smartphone, Monitor, Apple, Chrome } from 'lucide-react';
+import { Download, X, Smartphone, Monitor, Apple, Globe } from 'lucide-react';
 
 type Platform = 'android-chrome' | 'ios' | 'desktop' | 'unknown';
 
@@ -160,7 +160,7 @@ export function PWAInstallBanner() {
                 {/* Desktop Chrome hint */}
                 {isDesktop && !deferredPrompt.current && (
                   <div className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/4 p-3.5 text-sm text-slate-400">
-                    <Chrome className="w-5 h-5 flex-shrink-0 text-indigo-400" />
+                  <Globe className="w-5 h-5 flex-shrink-0 text-indigo-400" />
                     <span>Click the <span className="text-white font-semibold">⊕ Install</span> icon in the browser address bar</span>
                   </div>
                 )}

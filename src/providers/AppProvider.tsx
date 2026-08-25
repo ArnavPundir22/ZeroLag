@@ -18,6 +18,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       afterSignOutUrl="/"
       signInFallbackRedirectUrl="/"
       signUpFallbackRedirectUrl="/"
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
       appearance={{ theme: theme === 'dark' ? dark : undefined }}
     >
       {children}

@@ -1,7 +1,43 @@
-import { SignIn } from '@clerk/react';
+import { SignIn, SignUp, AuthenticateWithRedirectCallback } from '@clerk/react';
+import { useLocation } from 'react-router-dom';
 import { Activity } from 'lucide-react';
 
 export const LoginScreen = () => {
+  const location = useLocation();
+  const isSignUp = location.pathname.startsWith('/sign-up');
+  const isSSOCallback = location.pathname.includes('/sso-callback');
+
+  const commonAppearance = {
+    elements: {
+      rootBox: "w-full",
+      card: "bg-surface border border-border shadow-2xl rounded-2xl w-full p-8",
+      headerTitle: "text-text-primary text-2xl font-bold",
+      headerSubtitle: "text-text-secondary",
+      socialButtonsBlockButton: "bg-surface-hover border border-border hover:bg-surface-hover/80 text-text-primary h-11",
+      socialButtonsBlockButtonText: "text-text-primary font-medium",
+      dividerLine: "bg-border",
+      dividerText: "text-text-secondary",
+      formFieldLabel: "text-text-primary font-medium",
+      formFieldInput: "bg-background border-border text-text-primary focus:border-accent focus:ring-1 focus:ring-accent h-11",
+      formButtonPrimary: "bg-accent hover:bg-accent/90 text-white font-medium h-11 text-base shadow-lg shadow-accent/20",
+      footerActionText: "text-text-secondary",
+      footerActionLink: "text-accent hover:text-accent/80 font-medium"
+    }
+  };
+
+  if (isSSOCallback) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-background text-text-primary">
+        <AuthenticateWithRedirectCallback 
+          signInFallbackRedirectUrl="/"
+          signUpFallbackRedirectUrl="/"
+          signInForceRedirectUrl="/"
+          signUpForceRedirectUrl="/"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen w-screen flex bg-background">
       {/* Left Panel: Graphic / Value Prop */}
@@ -38,28 +74,25 @@ export const LoginScreen = () => {
         </div>
         
         <div className="w-full max-w-[400px]">
-          <SignIn 
-            routing="hash" 
-            fallbackRedirectUrl="/" 
-            signUpFallbackRedirectUrl="/"
-            appearance={{
-              elements: {
-                rootBox: "w-full",
-                card: "bg-surface border border-border shadow-2xl rounded-2xl w-full p-8",
-                headerTitle: "text-text-primary text-2xl font-bold",
-                headerSubtitle: "text-text-secondary",
-                socialButtonsBlockButton: "bg-surface-hover border border-border hover:bg-surface-hover/80 text-text-primary h-11",
-                socialButtonsBlockButtonText: "text-text-primary font-medium",
-                dividerLine: "bg-border",
-                dividerText: "text-text-secondary",
-                formFieldLabel: "text-text-primary font-medium",
-                formFieldInput: "bg-background border-border text-text-primary focus:border-accent focus:ring-1 focus:ring-accent h-11",
-                formButtonPrimary: "bg-accent hover:bg-accent/90 text-white font-medium h-11 text-base shadow-lg shadow-accent/20",
-                footerActionText: "text-text-secondary",
-                footerActionLink: "text-accent hover:text-accent/80 font-medium"
-              }
-            }}
-          />
+          {isSignUp ? (
+            <SignUp 
+              routing="path" 
+              path="/sign-up"
+              signInUrl="/sign-in"
+              fallbackRedirectUrl="/" 
+              signInFallbackRedirectUrl="/"
+              appearance={commonAppearance}
+            />
+          ) : (
+            <SignIn 
+              routing="path" 
+              path={location.pathname.startsWith('/sign-in') ? "/sign-in" : "/"}
+              signUpUrl="/sign-up"
+              fallbackRedirectUrl="/" 
+              signUpFallbackRedirectUrl="/"
+              appearance={commonAppearance}
+            />
+          )}
         </div>
       </div>
     </div>

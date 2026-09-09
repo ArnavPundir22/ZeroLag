@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, FileText, UploadCloud, CheckCircle2, AlertCircle, Trash2, Tag, Calendar, Layers, RefreshCw, CheckSquare, Square } from 'lucide-react';
+import { X, Sparkles, FileText, UploadCloud, CheckCircle2, AlertCircle, Trash2, Tag, Calendar, RefreshCw, CheckSquare, Square } from 'lucide-react';
 import { useSession } from '@clerk/react';
-import { parseTasksFromContent, ParsedTask } from '../../../utils/aiTaskParser';
+import { parseTasksFromContent, type ParsedTask } from '../../../utils/aiTaskParser';
 import { useDatabase } from '../../../db/DatabaseProvider';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -47,10 +47,8 @@ export const AutoTaskBuilderModal: React.FC<AutoTaskBuilderModalProps> = ({ isOp
   const [selectedDefaultColumn, setSelectedDefaultColumn] = useState<string>('');
   
   const [parsedTasks, setParsedTasks] = useState<(ParsedTask & { selected: boolean; targetColumnId: string })[]>([]);
-  const [isAiLoading, setIsAiLoading] = useState(false);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -110,7 +108,6 @@ export const AutoTaskBuilderModal: React.FC<AutoTaskBuilderModalProps> = ({ isOp
     try {
       setError(null);
       setStep('processing');
-      setIsAiLoading(true);
 
       const token = (await session?.getToken()) || '';
       const columnNames = columns.map(c => c.title);
@@ -141,8 +138,6 @@ export const AutoTaskBuilderModal: React.FC<AutoTaskBuilderModalProps> = ({ isOp
       console.error(err);
       setError(err.message || "Failed to generate tasks using Gemini AI.");
       setStep('input');
-    } finally {
-      setIsAiLoading(false);
     }
   };
 

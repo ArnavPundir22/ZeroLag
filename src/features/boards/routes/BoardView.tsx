@@ -9,6 +9,7 @@ import { useMultiplayer } from '../../../hooks/useMultiplayer';
 import { LiveCursors } from '../components/LiveCursors';
 import { CalendarView } from '../components/CalendarView';
 import { BoardHeader } from '../components/BoardHeader';
+import { AutoTaskBuilderModal } from '../../tasks/components/AutoTaskBuilderModal';
 import { v4 as uuidv4 } from 'uuid';
 
 export const BoardRouteWrapper = () => {
@@ -44,6 +45,8 @@ export const BoardView = () => {
   
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState('');
+  const [columns, setColumns] = useState<any[]>([]);
+  const [isAutoTaskBuilderOpen, setIsAutoTaskBuilderOpen] = useState(false);
 
   const { onlineUsers } = useMultiplayer();
 
@@ -55,6 +58,17 @@ export const BoardView = () => {
       }
     });
     return () => sub.unsubscribe();
+  }, [db, currentBoardId]);
+
+  // Fetch columns for current board
+  useEffect(() => {
+    if (!db || !currentBoardId) return;
+    const colSub = db.columns.find({
+      selector: { boardId: currentBoardId }
+    }).$.subscribe((cols: any[]) => {
+      setColumns(cols.map((c: any) => c.toJSON()).sort((a: any, b: any) => a.position - b.position));
+    });
+    return () => colSub.unsubscribe();
   }, [db, currentBoardId]);
 
   // Fetch available labels
@@ -160,10 +174,7 @@ export const BoardView = () => {
   const handleMeetClick = () => {
     if (!currentBoardId) return;
     
-    // Connect to the deterministic meeting room using a GET request for PWA compatibility
-    // The deployed server needs the updated /meet endpoint for this to work perfectly.
     const baseUrl = 'https://baatcheet-88e9.onrender.com/meet';
-    // Remove "BOARD-" prefix if exists to ensure unique room codes across projects
     const roomCode = currentBoardId.replace(/^BOARD-/i, '').substring(0, 6).toUpperCase();
     const username = user?.fullName || user?.firstName || 'ZeroLag User';
     
@@ -203,9 +214,16 @@ export const BoardView = () => {
         handleShare={handleShare}
         setIsSidebarOpen={setIsSidebarOpen}
         handleAddColumn={handleAddColumn}
+        onOpenAutoTaskBuilder={() => setIsAutoTaskBuilderOpen(true)}
       />
 
       {viewMode === 'board' ? <Board /> : <CalendarView />}
+
+      <AutoTaskBuilderModal
+        isOpen={isAutoTaskBuilderOpen}
+        onClose={() => setIsAutoTaskBuilderOpen(false)}
+        columns={columns}
+      />
 
       {toastMessage && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-surface border border-border shadow-xl rounded-lg px-4 py-3 z-[60] flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">

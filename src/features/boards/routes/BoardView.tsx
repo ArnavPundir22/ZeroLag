@@ -174,7 +174,7 @@ export const BoardView = () => {
   const handleMeetClick = () => {
     if (!currentBoardId) return;
     
-    const baseUrl = 'https://baatcheet-88e9.onrender.com/meet';
+    const baseUrl = 'https://nexusstream-rtc.onrender.com/';
     const roomCode = currentBoardId.replace(/^BOARD-/i, '').substring(0, 6).toUpperCase();
     const username = user?.fullName || user?.firstName || 'ZeroLag User';
     

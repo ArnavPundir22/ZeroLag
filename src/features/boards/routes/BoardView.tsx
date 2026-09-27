@@ -178,14 +178,29 @@ export const BoardView = () => {
     const roomCode = currentBoardId.replace(/^BOARD-/i, '').substring(0, 6).toUpperCase();
     const username = user?.fullName || user?.firstName || 'ZeroLag User';
     
-    const params = new URLSearchParams({
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = baseUrl;
+    form.target = '_blank';
+
+    const fields: Record<string, string> = {
       action: 'create',
       room_code: roomCode,
       room_name: boardTitle,
       username: username
+    };
+
+    Object.entries(fields).forEach(([key, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
     });
-    
-    window.open(`${baseUrl}?${params.toString()}`, '_blank');
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
   };
 
   return (

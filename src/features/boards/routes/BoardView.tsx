@@ -175,7 +175,8 @@ export const BoardView = () => {
     if (!currentBoardId) return;
     
     const baseUrl = 'https://nexusstream-rtc.onrender.com/';
-    const roomCode = currentBoardId.replace(/^BOARD-/i, '').substring(0, 6).toUpperCase();
+    const cleanBoardId = currentBoardId.replace(/^BOARD-/i, '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    const roomCode = cleanBoardId.substring(0, 6);
     const username = user?.fullName || user?.firstName || 'ZeroLag User';
     
     const form = document.createElement('form');
